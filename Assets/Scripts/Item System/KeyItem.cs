@@ -4,15 +4,14 @@ using UnityEngine;
 
 public abstract class KeyItem : Item
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void SetBaseInfo()
     {
-        
+        base.SetBaseInfo();
+        sellable = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    public override Dictionary<Stats.Damage, int> GetStats(int str, int dex, int @int)
     {
-        
+        throw new System.NotImplementedException();
     }
 }

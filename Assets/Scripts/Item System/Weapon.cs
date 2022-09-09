@@ -15,18 +15,6 @@ public abstract class Weapon : Item
         { Damage.Magic, new float[3] { 0, 0, 0 } }, { Damage.Holy, new float[3] { 0, 0, 0 } }, { Damage.Dark, new float[3] { 0, 0, 0 } }
     };
 
-    public override void SetBaseInfo()
-    {
-        base.SetBaseInfo();
-
-        baseStats = new Dictionary<Damage, int>()
-        {
-            { Damage.Slash, 0 }, { Damage.Strike, 0 }, { Damage.Pierce, 0 },
-            { Damage.Fire, 0 }, { Damage.Cold, 0 }, { Damage.Lightning, 0 },
-            { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
-        };
-    }
-
     /// <summary>
     /// Returns the stat distribution of this weapon from scaling only.
     /// </summary>

@@ -4,15 +4,13 @@ using UnityEngine;
 
 public abstract class Consumable : Item
 {
-    // Start is called before the first frame update
-    void Start()
+    public override Dictionary<Stats.Damage, int> GetStats(int str, int dex, int @int)
     {
-        
+        throw new System.NotImplementedException();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    /// <summary>
+    /// Use the specified amount of this item.
+    /// </summary>
+    public abstract void Use(int amt);
 }

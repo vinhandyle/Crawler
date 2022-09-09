@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,8 +10,20 @@ using UnityEngine;
 public class Inventory : MonoBehaviour
 {
     [SerializeField] private List<Item> items;
-    public int coins;
     public bool standalone; // Whether the inventory is not associated to a profile
+    public int coins
+    {
+        get
+        {
+            Item item = items.Find(i => i.itemTypeID == -1);
+            return (item == null) ? 0 : item.quantity;
+        }
+        set
+        {
+            Item item = items.Find(i => i.itemTypeID == -1);
+            if (item != null) item.quantity = value;
+        }
+    }
 
     private void Awake()
     {
@@ -41,11 +54,19 @@ public class Inventory : MonoBehaviour
     }
 
     /// <summary>
-    /// Sorts the inventory by item type.
+    /// Adds the specified item to the inventory.
     /// </summary>
-    public void Sort()
+    public void AddItem(Item item)
     {
-        items.OrderBy(item => item.itemTypeID);
+        if (item != null) items.Add(item);
+    }
+
+    /// <summary>
+    /// Removes the specified item from the inventory.
+    /// </summary>
+    public void RemoveItem(Item item)
+    {
+        if (item != null && items.Contains(item)) items.Remove(item);
     }
 
     /// <summary>
@@ -54,6 +75,7 @@ public class Inventory : MonoBehaviour
     /// </summary>
     public bool TransferItem(Inventory dest, Item item, string type, int amt)  
     {
+        var tm = TransferManager.Instance;
         bool successful = true;
         int price = 0;
         int index = items.IndexOf(item);
@@ -61,24 +83,34 @@ public class Inventory : MonoBehaviour
         switch (type)
         {
             case "Buy":
-                price = item.value * amt;
-                successful = coins >= price;
+                price = (int)tm.GetTransferInfo(item, type, amt);
+                successful = dest.coins >= price;
                 break;
 
             case "Sell":
-                price = -(int)(item.value * 0.8f) * amt;
+                price = (int)tm.GetTransferInfo(item, type, amt);
                 successful = dest.coins >= Mathf.Abs(price);
                 break;
 
             case "Steal":
-                successful = true;
+                System.Random rand = new System.Random();
+                successful = rand.Next(1, 10000) <= tm.GetTransferInfo(item, type, amt) * 100;
                 break;
         }
 
         if (successful)
         {
-            coins -= price;
-            dest.coins += price;
+            // Add gold item if it isn't in the inventory
+            // Required to access and update coin count
+            if (!items.Find(i => i.itemTypeID == -1) && price > 0)
+            {
+                Item goldCoins = dest.items.Find(i => i.itemTypeID == -1).CloneFromPrefab(transform);
+                goldCoins.quantity = 0;
+                items.Add(goldCoins);
+            }
+
+            dest.coins -= price;
+            coins += price;
 
             // Adjust item in both inventories
             if (item.stackable)
@@ -90,7 +122,7 @@ public class Inventory : MonoBehaviour
                 }
                 else
                 {
-                    Item newItem = item.CloneFromPrefab();
+                    Item newItem = item.CloneFromPrefab(dest.transform);
                     newItem.stackable = true;
                     newItem.quantity = amt;
                     dest.items.Add(newItem);

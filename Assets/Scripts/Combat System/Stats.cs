@@ -8,7 +8,7 @@ using UnityEngine;
 public class Stats : MonoBehaviour
 {
     /// <summary>
-    /// The 6 skill areas.
+    /// The 6 levelable stats.
     /// </summary>
     public enum Stat
     {

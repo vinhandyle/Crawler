@@ -22,6 +22,10 @@ public abstract class Item : MonoBehaviour
     [SerializeField] protected int _quantity;
 
     [Header("Item Info")]
+    public bool lootable = true;
+    public bool buyable = true;
+    public bool sellable = true;
+    public bool stealable = true;
     protected Dictionary<int, string> names = new Dictionary<int, string>();
     protected Dictionary<int, string> descriptions = new Dictionary<int, string>();
     protected Dictionary<Stat, int> reqs = new Dictionary<Stat, int>()
@@ -39,12 +43,12 @@ public abstract class Item : MonoBehaviour
     /// Create a new instance of the item prefab. 
     /// Necessary for having multiple of the same item without conflict.
     /// </summary>
-    public Item CloneFromPrefab()
+    public Item CloneFromPrefab(Transform parent = null)
     {
-        Debug.Log(this);
-
-        Transform parent = (transform.parent != null) ? transform.parent : GameObject.Find("Item/Spell/Tech Dump").transform;
+        if (parent == null)
+            parent = (transform.parent != null) ? transform.parent : GameObject.Find("Item/Spell/Tech Dump").transform;
         Item item = Instantiate(this, parent);
+        item.transform.name = item.transform.name.Replace("(Clone)", "").Trim();
         item.SetBaseInfo();
         return item;
     }
@@ -55,7 +59,91 @@ public abstract class Item : MonoBehaviour
     public virtual void SetBaseInfo()
     {
         statsSet = true;
+
+        baseStats = new Dictionary<Damage, int>()
+        {
+            { Damage.Slash, 0 }, { Damage.Strike, 0 }, { Damage.Pierce, 0 },
+            { Damage.Fire, 0 }, { Damage.Cold, 0 }, { Damage.Lightning, 0 },
+            { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
+        };
     }
+
+    #region Meta Data
+
+    public string[] GetItemType()
+    {
+        // [00][00][00][000]
+        // [category][type][subtype][item]
+
+        int _itemTypeID = itemTypeID / 1000;
+        int subType = _itemTypeID % 100;
+        int type = _itemTypeID / 100 % 100;
+        int category = _itemTypeID / 100 / 100 % 100;
+
+        string[] itemType = new string[2];
+
+        switch (category)
+        {
+            // Consumable
+            case 0:
+                break;
+
+            // Material
+            case 1:
+                break;
+
+            // Key Item
+            case 2:
+                break;
+
+            // Spell
+            case 3:
+                break;
+
+            // Technique
+            case 4:
+                break;
+
+            // Weapon
+            case 5:
+                break;
+
+            // Armor
+            case 6:
+                switch (type)
+                {
+                    case 0:
+                        itemType[0] = "Helmet";
+                        break;
+
+                    case 1:
+                        itemType[1] = "Chestplate";
+                        break;
+
+                    case 2:
+                        itemType[2] = "Leggings";
+                        break;
+
+                    case 3:
+                        itemType[3] = "Boots";
+                        break;
+                }
+                break;
+
+            // Accessory
+            case 7:
+                break;
+
+            // Ammo
+            case 8:
+                break;
+        }
+
+        return itemType;
+
+    }
+
+    #endregion
 
     #region Display
 

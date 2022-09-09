@@ -225,6 +225,10 @@ public class ActionMenu : Menu
     {
         extEm.SetSwitchable(true);
 
+        // Set transfer type
+        extIm.transferType = (type == "Trade") ? "Buy" : type;
+        playerIm.transferType = (type == "Trade") ? "Sell" : type;
+
         if (extEm.open)
         {
             extEm.Toggle();
@@ -236,16 +240,6 @@ public class ActionMenu : Menu
             // Always switch player to inventory
             if (playerEm.open)
                 playerEm.Close();
-
-            // Player inventory opens/closes with external
-            if (extIm.open)
-                playerIm.Open();
-            else
-                playerIm.Close();
-
-            // Set transfer type
-            extIm.transferType = (type == "Trade") ? "Buy" : type;
-            playerIm.transferType = (type == "Trade") ? "Sell" : type;
         }
     }
 

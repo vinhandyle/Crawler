@@ -24,6 +24,9 @@ public class InventoryMenu : CharacterMenu
     [SerializeField] private Text displayMoney;
     [SerializeField] private TransferMenu tm;
 
+    [Header("Use Consumable")]
+    [SerializeField] private UseMenu um;
+
     private enum Mode
     {
         All,
@@ -55,6 +58,15 @@ public class InventoryMenu : CharacterMenu
         {
             scrollbar.value = (scrollbar.direction == Scrollbar.Direction.LeftToRight) ? 0 : 1; 
         }
+        tm.Close();
+        um.Close();
+    }
+
+    public override void Close()
+    {
+        base.Close();
+        tm.Close();
+        um.Close();
         transferType = "";
     }
 
@@ -80,6 +92,7 @@ public class InventoryMenu : CharacterMenu
     #endregion
 
     #region Button Setup
+    
     /// <summary>
     /// Set the mode of the inventory menu to the specified category.
     /// </summary>
@@ -128,6 +141,8 @@ public class InventoryMenu : CharacterMenu
                 mode = Mode.Accessory;
                 break;
         }
+        tm.Close();
+        um.Close();
         Load();
     }
 
@@ -149,46 +164,32 @@ public class InventoryMenu : CharacterMenu
         SetItemSprite(btn.GetComponent<Image>(), item.sprite);
 
         // Left-click
+        btn.GetComponent<Button>().onClick.RemoveAllListeners();
         btn.GetComponent<Button>().onClick.AddListener
             (
                 () =>
                 {
                     tm.Close();
+                    um.Close();
                     infoMenu.SetItem(item);
-
-                    /*
-                    switch (transferType)
-                    {
-                        case "Buy":
-                            infoMenu.SetExtra(InfoMenu.Type.Buy, item.value);
-                            break;
-
-                        case "Sell":
-                            infoMenu.SetExtra(InfoMenu.Type.Sell, item.value);
-                            break;
-
-                        case "Steal":
-                            infoMenu.SetExtra(InfoMenu.Type.Steal, item.value);
-                            break;
-                    }
-                    */
                 }
             );
 
         // Right-click
+        Destroy(btn.GetComponent<RightClick>());
         btn.gameObject.AddComponent<RightClick>().onRightClick += () =>
         {
             if (transferType != "")
             {
+                infoMenu.SetItem(item);
                 tm.Trigger(this, inventory, connMenus[0].GetComponent<InventoryMenu>().inventory, item, transferType);
-                connMenus[0].GetComponent<InventoryMenu>().Load();
-                Load();
             }
             else
             {
-                if (item.GetComponent<Consumable>() != null)
+                if (item.GetComponent<Consumable>())
                 {
-                    // Open advanced menu w/ use button
+                    infoMenu.SetItem(item);
+                    um.Trigger(item);
                 }
             }
         };
@@ -225,6 +226,8 @@ public class InventoryMenu : CharacterMenu
                 break;
         }
 
+        #region Item Buttons
+
         // Get items to display
         List<Item> items = inventory.GetAllItems()
                                     .FindAll
@@ -239,16 +242,19 @@ public class InventoryMenu : CharacterMenu
                                             (mode == Mode.Ammo && i.GetComponent<Ammo>()) ||
                                             (mode == Mode.Armor && i.GetComponent<Armor>()) ||
                                             (mode == Mode.Accessory && i.GetComponent<Accessory>())
-                                    );
+                                    )
+                                    .FindAll
+                                    (
+                                        i => (transferType == "") || 
+                                        (transferType == "Loot" && i.lootable) || 
+                                        (transferType == "Buy" && i.buyable) ||
+                                        (transferType == "Sell" && i.sellable) ||
+                                        (transferType == "Steal" && i.stealable)
+                                    )
+                                    .OrderBy(item => item.itemTypeID)
+                                    .ToList();
 
         // Clear item buttons
-        for (int i = 0; i < itemRow.transform.childCount; ++i)
-        {
-            itemRow.transform.GetChild(i).GetComponent<Button>().onClick.RemoveAllListeners();
-            if (itemRow.transform.GetChild(i).GetComponent<RightClick>() != null)
-                Destroy(itemRow.transform.GetChild(i).GetComponent<RightClick>());
-        }
-
         foreach (GameObject copyRow in copyRows) Destroy(copyRow);
         copyRows.Clear();
 
@@ -260,15 +266,7 @@ public class InventoryMenu : CharacterMenu
             int rows = (a - b) / b + (a % b == 0 ? 0 : 1);
             for (int i = 0; i < rows; ++i)
             {
-                GameObject copyRow = Instantiate
-                    (
-                        itemRow, 
-                        i == 0 ? 
-                            new Vector2(itemRow.transform.position.x, itemRow.transform.position.y - 30) :
-                            new Vector2(copyRows[i - 1].transform.position.x, copyRows[i - 1].transform.position.y - 30), 
-                        itemRow.transform.rotation,
-                        itemRow.transform.parent
-                    );
+                GameObject copyRow = Instantiate(itemRow, itemRow.transform.parent);
                 copyRows.Add(copyRow);
             }
         }
@@ -299,5 +297,7 @@ public class InventoryMenu : CharacterMenu
                 row.transform.GetChild(i).gameObject.SetActive(false);
             }
         }
+
+        #endregion
     }
 }

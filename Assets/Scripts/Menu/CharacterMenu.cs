@@ -32,14 +32,15 @@ public abstract class CharacterMenu : Menu
     public override void Open()
     {
         base.Open();
+        // Use to open another menu when this one is open
         if (connMenus.Count == 2 && connMenus[1] != null && !connMenus[1].open) connMenus[1].Open(); 
     }
 
     public override void Close()
     {
-        //Debug.Log(transform.parent + " -> " + gameObject.name);
         base.Close();
         infoMenu.Close();
+        // Use to close another menu when this one is closed
         if (connMenus.Count == 2 && connMenus[0] != null && connMenus[0].open) connMenus[0].Close();
     }
 

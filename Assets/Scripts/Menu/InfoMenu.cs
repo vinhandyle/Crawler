@@ -10,10 +10,12 @@ using UnityEngine.UI;
 public class InfoMenu : Menu
 {
     [SerializeField] private Item item;
+    [SerializeField] private Equipment equipment;
+    [SerializeField] private InfoMenu main;
 
     [Header("UI")]
+    [SerializeField] private int mode;
     [SerializeField] private Text displayInfo;
-    [SerializeField] private Text extraInfo;
     [SerializeField] private Scrollbar scrollbar;
 
     /// <summary>
@@ -27,11 +29,15 @@ public class InfoMenu : Menu
     /// <summary>
     /// Set the specificed item as the one to be displayed.
     /// </summary>
-    public void SetItem(Item item)
+    public void SetItem(Item item, Equipment equipment = null, int mode = 0)
     {
-        if (item != null) this.item = item;
-        extraInfo.text = "";
-        Open();
+        if (item != null)
+        {
+            this.item = item;
+            this.equipment = (equipment != null) ? equipment : GameObject.Find("Player").GetComponent<Equipment>();
+            this.mode = mode;
+            Open();
+        }
     }
 
     public override void Close()
@@ -69,16 +75,29 @@ public class InfoMenu : Menu
 
     private string DisplayName()
     {
-        return item.GetName(0); // edit arg
-    }
+        return item.GetName(0) + (item.stackable ? " x" + item.quantity : ""); // edit arg
+    }   
 
     private string DisplayRequirements()
     {
         string displayReqs = "";
 
-        foreach (KeyValuePair<Stats.Stat, int> kvp in item.GetRequirements())
+        if (
+            item.GetComponent<Spell>() || item.GetComponent<Technique>() ||
+            item.GetComponent<Weapon>() || item.GetComponent<Armor>() || 
+            item.GetComponent<Accessory>()
+            )
         {
-            displayReqs += string.Format("{0} Min:\t{1}\n", kvp.Key.ToString(), kvp.Value);
+            foreach (KeyValuePair<Stats.Stat, int> kvp in item.GetRequirements())
+            {
+                displayReqs += string.Format
+                    (
+                        "{0} Min:\t<color={2}>{1}</color>\n", 
+                        kvp.Key.ToString(), 
+                        kvp.Value, 
+                        kvp.Value <= equipment.GetStatPoints()[kvp.Key] ? "black" : "red"
+                    );
+            }
         }
         return displayReqs;
     }
@@ -108,14 +127,43 @@ public class InfoMenu : Menu
 
         if (item.GetComponent<Weapon>() || item.GetComponent<Ammo>() || item.GetComponent<Armor>())
         {
+            Dictionary<Stats.Stat, int> statPoints = equipment.GetStatPoints();
+            Dictionary<Stats.Damage, int> dmgVals = item.GetStats(
+                        statPoints[Stats.Stat.Str],
+                        statPoints[Stats.Stat.Dex],
+                        statPoints[Stats.Stat.Int]
+                    );
+            Dictionary<Stats.Damage, int> mainDmgVals = main?.item?.GetStats(
+                        statPoints[Stats.Stat.Str],
+                        statPoints[Stats.Stat.Dex],
+                        statPoints[Stats.Stat.Int]
+                    );
+
             foreach (KeyValuePair<Stats.Damage, int> kvp in item.GetBaseStats())
             {
-                displayStats += string.Format("{0}:{1}{2}", kvp.Key.ToString(), kvp.Key.ToString().Length < 9 ? "\t\t" : "\t", kvp.Value);
+                int n = (main?.item == null) ? ((dmgVals[kvp.Key] == 0) ? 0 : 1) : dmgVals[kvp.Key].CompareTo(mainDmgVals?[kvp.Key]);
+                string color = (n > 0) ? "green" : (n < 0) ? "red" : "black";
+
+                displayStats += string.Format
+                    (
+                        "{0} {4}:{1}<color={3}>{2}</color>",
+                        kvp.Key.ToString(),
+                        kvp.Key.ToString().Length < 9 ? "\t\t" : "\t",
+                        kvp.Value,
+                        mode == 0 ? "black" : color,
+                        item.GetComponent<Weapon>() ? "Dmg" : "Def"
+                    );
 
                 if (item.GetComponent<Weapon>())
                 {
                     int scaledStat = ((Weapon)item).GetScaledStats(0, 0, 0)[kvp.Key];
-                    displayStats += string.Format(" \t{0} {1}", scaledStat >= 0 ? "+" : "-", scaledStat);
+                    displayStats += string.Format
+                        (
+                            " \t<color={2}>{0} {1}</color>", 
+                            scaledStat > 0 ? "+" : (scaledStat < 0 ? "-" : ""), 
+                            scaledStat != 0 ? scaledStat.ToString() : "",
+                            mode == 0 ? "black" : color
+                        );
                 }
                 displayStats += "\n";
             }

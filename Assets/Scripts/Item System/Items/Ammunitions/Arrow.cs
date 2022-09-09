@@ -9,7 +9,7 @@ public class Arrow : Ammo
         base.SetBaseInfo();
 
         itemTypeID = 2000;
-        value = 1;
+        value = 10;
 
         names.Add(0, "Arrow");
 

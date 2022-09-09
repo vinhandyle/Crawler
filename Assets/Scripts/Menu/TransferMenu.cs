@@ -5,33 +5,20 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Defines the right-click interaction with stackable items during transfers.
+/// Defines the right-click interaction with transferable items.
 /// </summary>
-public class TransferMenu : Menu
+public class TransferMenu : ItemCounterMenu
 { 
     [Header("Visible for Debug")]
     [SerializeField] private InventoryMenu im;
     [SerializeField] private Inventory srcInvenory;
     [SerializeField] private Inventory destInventory;
-    [SerializeField] private Item item;
     [SerializeField] private string transferType;
 
-    [Header("Menu")]
-    [SerializeField] private Button incBtn;
-    [SerializeField] private Button decBtn;
-    [SerializeField] private Button confirmBtn;
-    [SerializeField] private Button cancelBtn;
-    [SerializeField] private Text displayInfo;
-    [SerializeField] private Text displayAmt;
-    [SerializeField] private int amt;
-
-    [Header("Menus to Reload")]
-    [SerializeField] private List<Menu> menusToReload;
-
-    private void Update()
+    protected override void Awake()
     {
-        // Close if inventory menu(s) are closed
-        if (im != null && !im.open) Close();
+        OnConfirm += () => { srcInvenory.TransferItem(destInventory, item, transferType, amt > 0 ? amt : 1); };
+        base.Awake();
     }
 
     public override void Open()
@@ -46,14 +33,8 @@ public class TransferMenu : Menu
         base.Close();
     }
 
-    public override void Load()
-    {
-        SetDisplayAmount();
-        ReloadButtons();
-    }
-
     /// <summary>
-    /// 
+    /// Performs any pre-processing for the transfer menu before opening it.
     /// </summary>
     public void Trigger(InventoryMenu menu, Inventory src, Inventory dest, Item item, string type)
     {
@@ -66,77 +47,39 @@ public class TransferMenu : Menu
         this.item = item;
         transferType = type;
 
+        // QoL for trade-dumping
+        if (type == "Buy" || type == "Sell")
+            maxAmt = (int)(destInventory.coins / TransferManager.Instance.GetTransferInfo(item, type, 1));
+        else
+            maxAmt = item.quantity;
+        maxAmt = (maxAmt <= 0) ? 1 : (maxAmt > item.quantity) ? item.quantity : maxAmt;
+
         amt = 1;
         SetDisplayInfo();
-        SetActiveTransferAmount(item.stackable);
+        SetActiveCounterSection(item.stackable);
         Open();
     }
 
-    #region Button Setup
-
-    /// <summary>
-    /// Reload the functionality of all buttons in this menu.
-    /// </summary>
-    private void ReloadButtons()
-    {      
-        incBtn.onClick.RemoveAllListeners();
-        decBtn.onClick.RemoveAllListeners();
-        confirmBtn.onClick.RemoveAllListeners();
-        cancelBtn.onClick.RemoveAllListeners();
-
-        incBtn.onClick.AddListener(() => { UpdateTransferAmount(1); });
-        decBtn.onClick.AddListener(() => { UpdateTransferAmount(-1); });
-        confirmBtn.onClick.AddListener(
-            () =>
-            {
-                srcInvenory.TransferItem(destInventory, item, transferType, amt > 0 ? amt : 1);
-                Close();
-
-                foreach (Menu menu in menusToReload) menu.Load();
-            }
-        );
-        cancelBtn.onClick.AddListener(Close);
-    }
-
-    /// <summary>
-    /// Update the current transfer quanity by the delta amount with overflow control.
-    /// </summary>
-    private void UpdateTransferAmount(int delta)
+    protected override void SetDisplayInfo()
     {
-        amt += delta;
+        var tm = TransferManager.Instance;
 
-        if (amt > item.quantity) amt = 1;
-        if (amt == 0) amt = item.quantity;
-
-        SetDisplayAmount();
-        SetDisplayInfo();
-    }
-
-    #endregion
-
-    #region Display Setup
-
-    /// <summary>
-    /// Set the context info for display.
-    /// </summary>
-    private void SetDisplayInfo()
-    {
         switch (transferType)
         {
             case "Buy":
-                displayInfo.text = string.Format("Buy for:\n{0} G", item.value * amt);
+                displayInfo.text = string.Format("Buy for:\n{0} G", tm.GetTransferInfo(item, transferType, amt));
                 break;
 
             case "Sell":
-                displayInfo.text = string.Format("Sell for:\n{0} G", (int)(item.value * 0.8f) * amt);
+                displayInfo.text = string.Format("Sell for:\n{0} G", tm.GetTransferInfo(item, transferType, amt));
                 break;
 
             case "Steal":
-                displayInfo.text = string.Format("Chance of success:\n{0}%", Math.Round(1 / ((float)(item.value + 2) * amt), 2));
+                displayInfo.text = string.Format("Chance of success:\n{0}%", tm.GetTransferInfo(item, transferType, amt));
                 break;
 
             case "Learn":
-                displayInfo.text = string.Format("Learn for:\n{0} AP", item.value * amt);
+                displayInfo.text = string.Format("Learn for:\n{0} AP", tm.GetTransferInfo(item, transferType, amt));
                 break;
 
             default:
@@ -144,24 +87,4 @@ public class TransferMenu : Menu
                 break;
         }
     }
-
-    /// <summary>
-    /// Set the transfer amount for display.
-    /// </summary>
-    private void SetDisplayAmount()
-    {
-        displayAmt.text = string.Format("{0}/{1}", amt, item.quantity);
-    }
-
-    /// <summary>
-    /// Sets the UI elements related to transferring higher quantities active or not.
-    /// </summary>
-    private void SetActiveTransferAmount(bool b)
-    {
-        incBtn.gameObject.SetActive(b);
-        decBtn.gameObject.SetActive(b);
-        displayAmt.gameObject.SetActive(b);
-    }
-
-    #endregion
 }

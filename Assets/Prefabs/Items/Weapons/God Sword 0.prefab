@@ -45,3 +45,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sprite: {fileID: 0}
   statsSet: 0
+  stackable: 0
+  _quantity: 0
+  buyable: 1
+  sellable: 1
+  stealable: 1

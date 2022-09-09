@@ -10,6 +10,6 @@ public abstract class Armor : Item
 {
     public override Dictionary<Damage, int> GetStats(int str, int dex, int @int)
     {
-        throw new System.NotImplementedException();
+        return baseStats;
     }
 }

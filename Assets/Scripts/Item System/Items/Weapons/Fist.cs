@@ -11,6 +11,11 @@ public class Fist : Weapon
         itemTypeID = 0;
         value = 0;
 
+        lootable = false;
+        buyable = false;
+        sellable = false;
+        stealable = false;
+
         names.Add(0, "Fist");
 
         baseStats[Stats.Damage.Strike] = 1;

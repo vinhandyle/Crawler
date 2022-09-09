@@ -45,3 +45,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sprite: {fileID: 21300000, guid: c229b44811a69dc46a88aec7f7cc4416, type: 3}
   statsSet: 0
+  stackable: 0
+  _quantity: 0
+  lootable: 0
+  buyable: 0
+  sellable: 0
+  stealable: 0
