@@ -11,6 +11,9 @@ public class Inventory : MonoBehaviour
 {
     [SerializeField] private List<Item> items;
     public bool standalone; // Whether the inventory is not associated to a profile
+
+    #region Items tied to resource values
+
     public int coins
     {
         get
@@ -24,6 +27,22 @@ public class Inventory : MonoBehaviour
             if (item != null) item.quantity = value;
         }
     }
+
+    public int availableLvls
+    {
+        get
+        {
+            Item item = items.Find(i => i.itemTypeID == -2);
+            return (item == null) ? 0 : item.quantity;
+        }
+        set
+        {
+            Item item = items.Find(i => i.itemTypeID == -2);
+            if (item != null) item.quantity = value;
+        }
+    }
+
+    #endregion
 
     private void Awake()
     {
@@ -40,6 +59,14 @@ public class Inventory : MonoBehaviour
             {
                 Item _item = item.CloneFromPrefab();
                 _items.Add(_item);
+
+                // Add default linked techniques
+                Technique tech = _item.GetComponent<Weapon>()?.tech;
+                if (tech)
+                {
+                    tech.SetBaseInfo();
+                    _items.Add(tech);
+                }
             }
         }
         items = _items;
@@ -58,7 +85,13 @@ public class Inventory : MonoBehaviour
     /// </summary>
     public void AddItem(Item item)
     {
-        if (item != null) items.Add(item);
+        if (item != null)
+        {
+            items.Add(item);
+
+            Technique tech = item.GetComponent<Weapon>()?.tech;
+            if (tech) items.Add(tech);
+        }
     }
 
     /// <summary>

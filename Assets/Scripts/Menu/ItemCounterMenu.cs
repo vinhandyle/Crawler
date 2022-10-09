@@ -25,21 +25,9 @@ public abstract class ItemCounterMenu : Menu
 
     protected event Action OnConfirm;
 
-    public override void Load()
+    protected override void Awake()
     {
-        SetDisplayAmount();
-        ReloadButtons();
-    }
-
-    /// <summary>
-    /// Reload the functionality of all buttons in this menu.
-    /// </summary>
-    protected void ReloadButtons()
-    {
-        incBtn.onClick.RemoveAllListeners();
-        decBtn.onClick.RemoveAllListeners();
-        confirmBtn.onClick.RemoveAllListeners();
-        cancelBtn.onClick.RemoveAllListeners();
+        base.Awake();
 
         incBtn.onClick.AddListener(() => { UpdateCounter(1); });
         decBtn.onClick.AddListener(() => { UpdateCounter(-1); });
@@ -53,6 +41,11 @@ public abstract class ItemCounterMenu : Menu
             }
         );
         cancelBtn.onClick.AddListener(Close);
+    }
+
+    public override void Load()
+    {
+        SetDisplayAmount();
     }
 
     /// <summary>

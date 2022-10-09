@@ -13,7 +13,6 @@ public class GoldCoin : KeyItem
 
         stackable = true;
         buyable = false;
-        sellable = false;
 
         names.Add(0, "Gold Coin");
 

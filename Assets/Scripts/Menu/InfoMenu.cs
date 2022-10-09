@@ -75,20 +75,33 @@ public class InfoMenu : Menu
 
     private string DisplayName()
     {
-        return item.GetName(0) + (item.stackable ? " x" + item.quantity : ""); // edit arg
+        string weaponInfo = "";
+        Weapon itemW = item.GetComponent<Weapon>();
+        if (itemW)
+        { 
+            weaponInfo = string.Format(
+            "\n[{0}{1}]",
+            itemW.type,
+            itemW.tech ? string.Format("/{0}", itemW.tech.GetName(100)) : ""
+            );
+        }
+
+        return string.Format(
+            "{0}{1}{2}",
+            item.GetName(0),
+            item.stackable ? string.Format(" x{0}", item.quantity) : "",
+            weaponInfo
+            ); // edit arg
     }   
 
     private string DisplayRequirements()
     {
         string displayReqs = "";
 
-        if (
-            item.GetComponent<Spell>() || item.GetComponent<Technique>() ||
-            item.GetComponent<Weapon>() || item.GetComponent<Armor>() || 
-            item.GetComponent<Accessory>()
-            )
+        Dictionary<Stats.Stat, int> reqs = item.GetRequirements();
+        if (reqs != null)
         {
-            foreach (KeyValuePair<Stats.Stat, int> kvp in item.GetRequirements())
+            foreach (KeyValuePair<Stats.Stat, int> kvp in reqs)
             {
                 displayReqs += string.Format
                     (
@@ -106,11 +119,15 @@ public class InfoMenu : Menu
     {
         string displayCosts = "";
 
-        foreach (KeyValuePair<Stats.Gauge, int> kvp in item.GetUseCosts())
+        Dictionary<Stats.Gauge, int> useCosts = item.GetUseCosts();
+        if (useCosts != null)
         {
-            if (kvp.Value > 0)
+            foreach (KeyValuePair<Stats.Gauge, int> kvp in useCosts)
             {
-                displayCosts += string.Format("{0} Cost:\t{1}\n", kvp.Key.ToString(), kvp.Value);
+                if (kvp.Value > 0)
+                {
+                    displayCosts += string.Format("{0} Cost:\t{1}\n", kvp.Key.ToString(), kvp.Value);
+                }
             }
         }
         return displayCosts;
@@ -118,14 +135,15 @@ public class InfoMenu : Menu
 
     private string DisplayDescription()
     {
-        return item.GetDescription(0);
+        return new MenuHelper().StringWindow(item.GetDescription(0), 31);
     }
 
     private string DisplayStats()
     {
         string displayStats = "";
 
-        if (item.GetComponent<Weapon>() || item.GetComponent<Ammo>() || item.GetComponent<Armor>())
+        Dictionary<Stats.Damage, int> baseStats = item.GetBaseStats();
+        if (baseStats != null)
         {
             Dictionary<Stats.Stat, int> statPoints = equipment.GetStatPoints();
             Dictionary<Stats.Damage, int> dmgVals = item.GetStats(
@@ -138,20 +156,21 @@ public class InfoMenu : Menu
                         statPoints[Stats.Stat.Dex],
                         statPoints[Stats.Stat.Int]
                     );
+            Dictionary<Stats.Damage, Color> dmgColor = new Stats().dmgColor;
 
-            foreach (KeyValuePair<Stats.Damage, int> kvp in item.GetBaseStats())
+            foreach (KeyValuePair<Stats.Damage, int> kvp in baseStats)
             {
                 int n = (main?.item == null) ? ((dmgVals[kvp.Key] == 0) ? 0 : 1) : dmgVals[kvp.Key].CompareTo(mainDmgVals?[kvp.Key]);
                 string color = (n > 0) ? "green" : (n < 0) ? "red" : "black";
 
                 displayStats += string.Format
                     (
-                        "{0} {4}:{1}<color={3}>{2}</color>",
-                        kvp.Key.ToString(),
-                        kvp.Key.ToString().Length < 9 ? "\t\t" : "\t",
+                        "<color={4}>{0}</color> {3}:\t<color={2}>{1}</color>",
+                        kvp.Key.ToString().Substring(0, 4),
                         kvp.Value,
                         mode == 0 ? "black" : color,
-                        item.GetComponent<Weapon>() ? "Dmg" : "Def"
+                        item.GetComponent<Weapon>() ? "Dmg" : "Def",
+                        "#" + ColorUtility.ToHtmlStringRGBA(dmgColor[kvp.Key])
                     );
 
                 if (item.GetComponent<Weapon>())
@@ -179,7 +198,7 @@ public class InfoMenu : Menu
         {
             displayEffects += effect.description + "\n";
         }
-        return displayEffects;
+        return new MenuHelper().StringWindow(displayEffects, 31);
     }
 
     #endregion

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,9 @@ public class EquipmentMenu : CharacterMenu
 
     [Header("Stats")]
     [SerializeField] private RadarChart rc;
+    [SerializeField] private Text displayName;
+    [SerializeField] private Text displayStats;
+    [SerializeField] private Text displayEffects;
 
     [Header("Gear")]
     [SerializeField] private Button helmetSlot;
@@ -22,14 +26,22 @@ public class EquipmentMenu : CharacterMenu
     [SerializeField] private List<Button> ammoSlots;
     [SerializeField] private List<Button> accessorySlots;
     [SerializeField] private List<Button> consumableSlots;
-    [SerializeField] private List<Button> spellTechSlots;
+    [SerializeField] private List<Button> spellSlots;
 
     [Header("Menu")]
     [SerializeField] private List<Scrollbar> scrollbars;
+    [SerializeField] private LevelUpMenu lum;
     [SerializeField] private EquipMenu em;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        rc?.SetClickBehavior(lum);
+    }
 
     public override void Open()
     {
+        displayStats.text = "";
         base.Open();
 
         foreach (Scrollbar scrollbar in scrollbars) scrollbar.value = 1;
@@ -37,6 +49,7 @@ public class EquipmentMenu : CharacterMenu
 
     public override void Close()
     {
+        lum?.Close();
         em?.Close();
         base.Close();
     }
@@ -49,6 +62,91 @@ public class EquipmentMenu : CharacterMenu
     public void Set(Equipment equipment)
     {
         this.equipment = equipment;
+    }
+
+    /// <summary>
+    /// Load the name and level of the character.
+    /// </summary>
+    private void LoadName()
+    {
+        displayName.text = string.Format(
+            "<color={2}>{0}</color>\nLvl {1}", 
+            new MenuHelper().StringWindow(equipment.GetCharacter().charName, 10), 
+            equipment.GetCharacter().level,
+            "#" + ColorUtility.ToHtmlStringRGBA(equipment.GetCharacter().nameColor)
+            );
+    }
+
+    /// <summary>
+    /// Load the stat section (total damage and defense)
+    /// of the equipment menu.
+    /// </summary>
+    private void LoadStats()
+    { 
+        Dictionary<Stats.Stat, int> stats = equipment.GetStatPoints();
+
+        List<Item> equippedItems = new List<Item>()
+        {
+            equipment.helmet, equipment.chestplate, 
+            equipment.leggings, equipment.boots
+        };
+        equippedItems.AddRange(equipment.accessories);
+        equippedItems.AddRange(equipment.weapons);
+
+        string gaugeText = "";
+        string dmgText = "";
+        string defText = "";
+
+        foreach (KeyValuePair<Stats.Gauge, Color> kvp in new Stats().gaugeColor)
+        {
+            gaugeText += string.Format(
+                "<color={3}>{0}: {1}/{2}</color>\n",
+                kvp.Key,
+                equipment.GetGaugeValue(kvp.Key),
+                equipment.GetMaxGaugeValue(kvp.Key),
+                "#" + ColorUtility.ToHtmlStringRGBA(kvp.Value)
+                );
+        }
+
+        foreach (KeyValuePair<Stats.Damage, Color> kvp in new Stats().dmgColor)
+        {
+            int totalDmg = equippedItems.Where(i => i != null && i.GetComponent<Weapon>() != null)
+                                   .Sum(
+                i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
+                );
+
+            int totalDef = equippedItems.Where(i => i != null && i.GetComponent<Weapon>() == null)
+                                   .Sum(
+                i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
+                );
+
+            dmgText += string.Format
+                (
+                    "<color={2}>{0}</color> Dmg:\t<color=black>{1}</color>\n",
+                    kvp.Key.ToString().Substring(0, 4),
+                    totalDmg,
+                    "#" + ColorUtility.ToHtmlStringRGBA(kvp.Value)
+                );
+
+            defText += string.Format
+                (
+                    "<color={2}>{0}</color> Def:\t<color=black>{1}</color>\n",
+                    kvp.Key.ToString().Substring(0, 4),
+                    totalDef,
+                    "#" + ColorUtility.ToHtmlStringRGBA(kvp.Value)
+                );           
+        }
+
+        displayStats.text = gaugeText + "\n" + dmgText + "\n" + defText;
+    }
+
+    /// <summary>
+    /// Load the character's non-gear effects.
+    /// </summary>
+    private void LoadEffects()
+    {
+        displayEffects.text = new MenuHelper().StringWindow(
+            string.Join("\n", equipment.effects.Select(e => e.description)), 25);
     }
 
     #endregion
@@ -135,6 +233,10 @@ public class EquipmentMenu : CharacterMenu
         rc.SetValues(equipment.GetStatPointValues());
         rc.GenerateChart();
 
+        LoadName();
+        LoadStats();
+        LoadEffects();
+
         #region Gear Buttons
 
         // Clear accesory slots
@@ -145,8 +247,8 @@ public class EquipmentMenu : CharacterMenu
             Destroy(btn.gameObject);
         }
 
-        // Clear spell/tech slots
-        foreach (Button btn in spellTechSlots) btn.gameObject.SetActive(false);
+        // Clear spell slots
+        foreach (Button btn in spellSlots) btn.gameObject.SetActive(false);
 
         // Generate accessory slots
         for (int i = 1; i < equipment.accessories.Count; ++i)
@@ -179,11 +281,11 @@ public class EquipmentMenu : CharacterMenu
             SetSlotButton(consumableSlots[i], equipment.consumables[i], "Graphics/Items/Equipment Slots/Consumable Empty", i);
         }
 
-        // Load spells/techniques
-        for (int i = 0; i < equipment.spellTechs.Count; ++i)
+        // Load spells
+        for (int i = 0; i < equipment.spells.Count; ++i)
         {
-            spellTechSlots[i].gameObject.SetActive(true);
-            SetSlotButton(spellTechSlots[i], equipment.spellTechs[i], "Graphics/Items/Equipment Slots/Spell_Tech Empty", i);
+            spellSlots[i].gameObject.SetActive(true);
+            SetSlotButton(spellSlots[i], equipment.spells[i], "Graphics/Items/Equipment Slots/Spell Empty", i);
         }
 
         #endregion

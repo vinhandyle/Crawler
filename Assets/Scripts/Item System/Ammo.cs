@@ -10,8 +10,8 @@ public abstract class Ammo : Item
 {
     protected Dictionary<Damage, float[]> scalings = new Dictionary<Damage, float[]>()
     {
-        { Damage.Slash, new float[3] { 0, 0, 0 } }, { Damage.Strike, new float[3] { 0, 0, 0 } }, { Damage.Pierce, new float[3] { 0, 0, 0 } },
-        { Damage.Fire, new float[3] { 0, 0, 0 } }, { Damage.Cold, new float[3] { 0, 0, 0 } }, { Damage.Lightning, new float[3] { 0, 0, 0 } },
+        { Damage.Physical, new float[3] { 0, 0, 0 } },
+        { Damage.Fire, new float[3] { 0, 0, 0 } }, { Damage.Frost, new float[3] { 0, 0, 0 } }, { Damage.Lightning, new float[3] { 0, 0, 0 } },
         { Damage.Magic, new float[3] { 0, 0, 0 } }, { Damage.Holy, new float[3] { 0, 0, 0 } }, { Damage.Dark, new float[3] { 0, 0, 0 } }
     };
 
@@ -22,8 +22,8 @@ public abstract class Ammo : Item
 
         baseStats = new Dictionary<Damage, int>()
         {
-            { Damage.Slash, 0 }, { Damage.Strike, 0 }, { Damage.Pierce, 0 },
-            { Damage.Fire, 0 }, { Damage.Cold, 0 }, { Damage.Lightning, 0 },
+            { Damage.Physical, 0 },
+            { Damage.Fire, 0 }, { Damage.Frost, 0 }, { Damage.Lightning, 0 },
             { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
         };
     }

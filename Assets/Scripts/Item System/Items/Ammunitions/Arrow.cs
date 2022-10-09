@@ -13,6 +13,6 @@ public class Arrow : Ammo
 
         names.Add(0, "Arrow");
 
-        baseStats[Stats.Damage.Pierce] = 5;
+        baseStats[Stats.Damage.Physical] = 5;
     }
 }

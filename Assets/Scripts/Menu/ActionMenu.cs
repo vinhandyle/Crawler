@@ -36,6 +36,11 @@ public class ActionMenu : Menu
         extEm = GameObject.Find("Ext Menu").GetComponentInChildren<EquipmentMenu>();
         extIm = GameObject.Find("Ext Menu").GetComponentInChildren<InventoryMenu>();
 
+        foreach (Button btn in btns)
+        {
+            btn.onClick.AddListener(() => { SelectAction(btn); });
+        }
+
         closeBtn.onClick.AddListener( Close );
         base.Awake();
     }
@@ -50,17 +55,14 @@ public class ActionMenu : Menu
     {
         foreach (Button btn in btns)
         {
-            btn.onClick.RemoveAllListeners();
             btn.gameObject.SetActive(false);
         }
         Open();
 
         for (int i = 0; i < actions.Count; ++i)
         {
-            Button btn = btns[i]; // Need to access a temp to prevent listener arg overwrite
             btns[i].gameObject.SetActive(true);
             btns[i].GetComponentInChildren<Text>().text = actions[i].ToString();
-            btns[i].onClick.AddListener(() => { SelectAction(btn); });
         }
     }
 
@@ -227,7 +229,7 @@ public class ActionMenu : Menu
 
         // Set transfer type
         extIm.transferType = (type == "Trade") ? "Buy" : type;
-        playerIm.transferType = (type == "Trade") ? "Sell" : type;
+        playerIm.transferType = (type == "Trade") ? "Sell" : ((type == "Loot") ? "Stash" : type);
 
         if (extEm.open)
         {

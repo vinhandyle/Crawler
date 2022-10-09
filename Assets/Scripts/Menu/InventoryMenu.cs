@@ -247,6 +247,7 @@ public class InventoryMenu : CharacterMenu
                                     (
                                         i => (transferType == "") || 
                                         (transferType == "Loot" && i.lootable) || 
+                                        (transferType == "Stash" && i.stashable) ||
                                         (transferType == "Buy" && i.buyable) ||
                                         (transferType == "Sell" && i.sellable) ||
                                         (transferType == "Steal" && i.stealable)

@@ -18,7 +18,7 @@ public class Fist : Weapon
 
         names.Add(0, "Fist");
 
-        baseStats[Stats.Damage.Strike] = 1;
-        scalings[Stats.Damage.Strike] = new float[3] { 0.5f, 0, 0 };
+        baseStats[Stats.Damage.Physical] = 1;
+        scalings[Stats.Damage.Physical] = new float[3] { 0.5f, 0, 0 };
     }
 }

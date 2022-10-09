@@ -132,5 +132,14 @@ namespace UnityEngine.UI.Extensions
                 vh.AddUIVertexQuad(SetVbo(new[] { pos0, pos1, pos2, pos3 }, new[] { uv0, uv1, uv2, uv3 }));
             }
         }
+
+        /// <summary>
+        /// Original: Call to redraw the polygon from code 
+        /// (otherwise it is only possible from the inspector)
+        /// </summary>
+        public void UpdatePolygon()
+        {
+            UpdateGeometry();
+        }
     }
 }

@@ -23,19 +23,14 @@ public abstract class Item : MonoBehaviour
 
     [Header("Item Info")]
     public bool lootable = true;
+    public bool stashable = true;
     public bool buyable = true;
     public bool sellable = true;
     public bool stealable = true;
     protected Dictionary<int, string> names = new Dictionary<int, string>();
     protected Dictionary<int, string> descriptions = new Dictionary<int, string>();
-    protected Dictionary<Stat, int> reqs = new Dictionary<Stat, int>()
-    {
-        { Stat.Str, 0 }, { Stat.Dex, 0 }, { Stat.Int, 0 }
-    };
-    protected Dictionary<Gauge, int> useCosts = new Dictionary<Gauge, int>()
-    {
-        { Gauge.HP, 0 }, { Gauge.MP, 0 }, { Gauge.SP, 0 }
-    };
+    protected Dictionary<Stat, int> reqs;
+    protected Dictionary<Gauge, int> useCosts;
     protected Dictionary<Damage, int> baseStats;
     protected Dictionary<int[], Effect> effects = new Dictionary<int[], Effect>();
 
@@ -59,12 +54,27 @@ public abstract class Item : MonoBehaviour
     public virtual void SetBaseInfo()
     {
         statsSet = true;
+    }
 
-        baseStats = new Dictionary<Damage, int>()
+    /// <summary>
+    /// Set the item's stat requirements.
+    /// </summary>
+    protected void SetRequirements(int str, int dex, int @int)
+    {
+        reqs = new Dictionary<Stat, int>()
         {
-            { Damage.Slash, 0 }, { Damage.Strike, 0 }, { Damage.Pierce, 0 },
-            { Damage.Fire, 0 }, { Damage.Cold, 0 }, { Damage.Lightning, 0 },
-            { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
+            { Stat.Str, str }, { Stat.Dex, dex }, { Stat.Int, @int }
+        };
+    }
+
+    /// <summary>
+    /// Set the item's use costs.
+    /// </summary>
+    protected void SetUseCosts(int hp, int mp, int sp)
+    {
+        useCosts = new Dictionary<Gauge, int>()
+        {
+            { Gauge.HP, hp }, { Gauge.MP, mp }, { Gauge.SP, sp }
         };
     }
 
@@ -192,7 +202,10 @@ public abstract class Item : MonoBehaviour
     /// <summary>
     /// Returns the item's stats based on the given skill levels.
     /// </summary>
-    public abstract Dictionary<Damage, int> GetStats(int str, int dex, int @int);
+    public virtual Dictionary<Damage, int> GetStats(int str, int dex, int @int)
+    {
+        return GetBaseStats();
+    }
 
     /// <summary>
     /// Returns a list of effects available from this item based on the given dexterity and intelligence.

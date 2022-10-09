@@ -10,16 +10,16 @@ public class GodSword_0 : Weapon
 
         itemTypeID = 1000; //
         value = -1;
+        _type = Stats.AttackType.Slash;
 
         names.Add(0, "Sharp Blade");
         names.Add(20, "Magnificent Blade");
         names.Add(40, "Divine Blade");
         names.Add(100, "Hochste, the First Blade");
 
-        reqs[Stats.Stat.Str] = 10; //
-        reqs[Stats.Stat.Dex] = 30; //
+        SetRequirements(10, 30, 0);
 
-        baseStats[Stats.Damage.Slash] = 10;
-        scalings[Stats.Damage.Slash] = new float[3] { 0.1f, 2, 0 }; //
+        baseStats[Stats.Damage.Physical] = 10;
+        scalings[Stats.Damage.Physical] = new float[3] { 0.1f, 2, 0 }; //
     }
 }

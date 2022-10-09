@@ -27,6 +27,18 @@ public class EquipMenu : Menu
     [SerializeField] private Item newEquip;
     public event Action<Item, string> OnConfirm;
 
+    [Header("Link")]
+    [SerializeField] private bool linkMode;
+    [SerializeField] private Button modeBtn;
+    [SerializeField] private Technique currentLinked;
+    [SerializeField] private Technique newLink;
+
+    protected override void Awake()
+    {
+        modeBtn.onClick.AddListener(SwitchMode);
+        base.Awake();
+    }
+
     public override void Close()
     {
         OnConfirm = null;
@@ -39,11 +51,15 @@ public class EquipMenu : Menu
     /// </summary>
     public void Trigger(Item item, string type)
     {
-        currentEquipped = item;
         itemType = type;
+        currentEquipped = item;
+        newEquip = null;
+
+        linkMode = false;
+        currentLinked = item?.GetComponent<Weapon>()?.tech;
+        newLink = null;
+
         transform.position = em.transform.position;
-        equipBtn.gameObject.SetActive(false);
-        unequipBtn.gameObject.SetActive(currentEquipped != null);
         Open();
     }
 
@@ -72,10 +88,27 @@ public class EquipMenu : Menu
                 () =>
                 {
                     infoMenus[0].SetItem(item, inventory.GetComponent<Equipment>(), 1);
-                    newEquip = item;
+
+                    if (linkMode)
+                    {
+                        newLink = item.GetComponent<Technique>();
+                    }
+                    else
+                    {
+                        newEquip = item;
+                    }
                     equipBtn.gameObject.SetActive(true);
                 }
             );
+    }
+
+    /// <summary>
+    /// Switch between the equip and link modes.
+    /// </summary>
+    private void SwitchMode()
+    {
+        linkMode = !linkMode;
+        Load();
     }
 
     /// <summary>
@@ -83,34 +116,72 @@ public class EquipMenu : Menu
     /// </summary>
     protected void ReloadButtons()
     {
+        equipBtn.gameObject.SetActive((!linkMode && newEquip != null) || (linkMode && newLink != null));
+        unequipBtn.gameObject.SetActive((!linkMode && currentEquipped != null) || (linkMode && currentLinked != null));
+        modeBtn.gameObject.SetActive(!linkMode && currentEquipped?.GetComponent<Weapon>());
+
         equipBtn.onClick.RemoveAllListeners();
         unequipBtn.onClick.RemoveAllListeners();
         cancelBtn.onClick.RemoveAllListeners();
 
+        equipBtn.GetComponentInChildren<Text>().text = linkMode ? "Link" : "Equip";
         equipBtn.onClick.AddListener
             (
                 () =>
                 {
-                    inventory.AddItem(currentEquipped);
-                    OnConfirm.Invoke(newEquip, itemType);
-                    inventory.RemoveItem(newEquip);
-                    em.Load();
-                    Close();
+                    if (linkMode)
+                    {
+                        currentEquipped.GetComponent<Weapon>().tech = newLink;
+                        infoMenus[0].Close();
+                        infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>(), 1);
+                        SwitchMode();
+                    }
+                    else
+                    {
+                        inventory.AddItem(currentEquipped);
+                        OnConfirm.Invoke(newEquip, itemType);
+                        inventory.RemoveItem(newEquip);
+                        em.Load();
+                        Close();
+                    }
                 }
             );
 
+        unequipBtn.GetComponentInChildren<Text>().text = linkMode ? "Delink" : "Unequip";
         unequipBtn.onClick.AddListener
             (
                 () =>
                 {
-                    inventory.AddItem(currentEquipped);
-                    OnConfirm.Invoke(null, itemType);
-                    em.Load();
-                    Close();
+                    if (linkMode)
+                    {
+                        currentEquipped.GetComponent<Weapon>().tech = null;
+                        infoMenus[0].SetItem(currentEquipped, inventory.GetComponent<Equipment>(), 1);
+                        SwitchMode();
+                    }
+                    else
+                    {
+                        inventory.AddItem(currentEquipped);
+                        OnConfirm.Invoke(null, itemType);
+                        em.Load();
+                        Close();
+                    }
                 }
             );
 
-        cancelBtn.onClick.AddListener(Close);
+        cancelBtn.onClick.AddListener
+            (
+                () =>
+                {
+                    if (linkMode)
+                    {
+                        SwitchMode();
+                    }
+                    else
+                    {
+                        Close();
+                    }
+                }
+            );
     }
 
     #endregion
@@ -127,10 +198,11 @@ public class EquipMenu : Menu
                                     (
                                         i =>
                                             (itemType == "Consumable" && i.GetComponent<Consumable>()) ||
-                                            (itemType == "Weapon" && i.GetComponent<Weapon>()) ||
                                             (itemType == "Ammo" && i.GetComponent<Ammo>()) ||
                                             (itemType == "Accessory" && i.GetComponent<Accessory>()) ||
-                                            (itemType == "Spell_Tech" && (i.GetComponent<Spell>() || i.GetComponent<Technique>())) ||
+                                            (itemType == "Spell" && i.GetComponent<Spell>()) ||
+                                            (!linkMode && itemType == "Weapon" && i.GetComponent<Weapon>()) ||
+                                            (linkMode && i.GetComponent<Technique>() && i.GetComponent<Technique>().CheckValidLink(currentEquipped.GetComponent<Weapon>())) ||
                                             (new List<string>() { "Helmet", "Chestplate", "Leggings", "Boots" }.Contains(itemType) && i.GetItemType()[0] == itemType)
                                     )
                                     .OrderBy(item => item.itemTypeID)
