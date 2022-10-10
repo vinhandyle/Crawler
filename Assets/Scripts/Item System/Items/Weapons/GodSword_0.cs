@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class GodSword_0 : Weapon
 {
-    public override void SetBaseInfo()
+    public GodSword_0() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = 1000; //
         value = -1;
         _type = Stats.AttackType.Slash;
+
+        tech = new GodSwordTech_0();
 
         names.Add(0, "Sharp Blade");
         names.Add(20, "Magnificent Blade");

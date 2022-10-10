@@ -7,10 +7,8 @@ using UnityEngine;
 /// </summary>
 public class LevelItem : KeyItem
 {
-    public override void SetBaseInfo()
+    public LevelItem() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = -2;
         value = 1000;
 

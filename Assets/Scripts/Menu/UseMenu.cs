@@ -13,7 +13,19 @@ public class UseMenu : ItemCounterMenu
 
     protected override void Awake()
     {
-        OnConfirm += () => { item.GetComponent<Consumable>().Use(amt); };
+        OnConfirm += () => 
+        { 
+            if (item.quantity >= amt)
+            {
+                ((Consumable)item).Use(amt);
+                item.quantity -= amt;
+
+                if (item.quantity == 0)
+                {
+                    player.GetComponent<Inventory>().RemoveItem(item);
+                }
+            }
+        };
         base.Awake();
     }
 

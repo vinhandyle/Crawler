@@ -30,6 +30,7 @@ public class EquipMenu : Menu
     [Header("Link")]
     [SerializeField] private bool linkMode;
     [SerializeField] private Button modeBtn;
+    [SerializeField] private Item itemToLink;
     [SerializeField] private Technique currentLinked;
     [SerializeField] private Technique newLink;
 
@@ -56,7 +57,7 @@ public class EquipMenu : Menu
         newEquip = null;
 
         linkMode = false;
-        currentLinked = item?.GetComponent<Weapon>()?.tech;
+        currentLinked = ((Weapon)item)?.tech;
         newLink = null;
 
         transform.position = em.transform.position;
@@ -87,11 +88,31 @@ public class EquipMenu : Menu
             (
                 () =>
                 {
-                    infoMenus[0].SetItem(item, inventory.GetComponent<Equipment>(), 1);
+                    // Selecting same item will close comparison info menu
+                    if (infoMenus[0].CompareItem(item))
+                    {
+                        infoMenus[0].Close();
+                        if (item.GetItemClass() == Weapon.GetStaticItemClass())
+                        {
+                            itemToLink = currentEquipped;
+                            currentLinked = ((Weapon)itemToLink)?.tech;
+                        }
+                    }
+                    else
+                    {
+                        infoMenus[0].SetItem(item, inventory.GetComponent<Equipment>(), 1);
+                        if (item.GetItemClass() == Weapon.GetStaticItemClass())
+                        {
+                            itemToLink = item;
+                            currentLinked = ((Weapon)itemToLink).tech;
+                        }
+                    }
+                    modeBtn.gameObject.SetActive(!linkMode && itemToLink != null);
 
+                    // Set tentative equip/link
                     if (linkMode)
                     {
-                        newLink = item.GetComponent<Technique>();
+                        newLink = (Technique)item;
                     }
                     else
                     {
@@ -108,6 +129,13 @@ public class EquipMenu : Menu
     private void SwitchMode()
     {
         linkMode = !linkMode;
+        if (linkMode)
+        {
+            newLink = null;
+            infoMenus[0].Close();
+            infoMenus[1].SetItem(((Weapon)itemToLink).tech, inventory.GetComponent<Equipment>());
+        }
+
         Load();
     }
 
@@ -118,7 +146,7 @@ public class EquipMenu : Menu
     {
         equipBtn.gameObject.SetActive((!linkMode && newEquip != null) || (linkMode && newLink != null));
         unequipBtn.gameObject.SetActive((!linkMode && currentEquipped != null) || (linkMode && currentLinked != null));
-        modeBtn.gameObject.SetActive(!linkMode && currentEquipped?.GetComponent<Weapon>());
+        modeBtn.gameObject.SetActive(!linkMode && (Weapon)itemToLink != null);
 
         equipBtn.onClick.RemoveAllListeners();
         unequipBtn.onClick.RemoveAllListeners();
@@ -131,9 +159,10 @@ public class EquipMenu : Menu
                 {
                     if (linkMode)
                     {
-                        currentEquipped.GetComponent<Weapon>().tech = newLink;
-                        infoMenus[0].Close();
-                        infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>(), 1);
+                        ((Weapon)itemToLink).tech = newLink;
+                        currentLinked = newLink;
+                        infoMenus[0].SetItem(itemToLink, inventory.GetComponent<Equipment>(), 1);
+                        infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>());
                         SwitchMode();
                     }
                     else
@@ -141,8 +170,12 @@ public class EquipMenu : Menu
                         inventory.AddItem(currentEquipped);
                         OnConfirm.Invoke(newEquip, itemType);
                         inventory.RemoveItem(newEquip);
+
+                        currentEquipped = newEquip;
+                        infoMenus[0].Close();
+                        infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>());
                         em.Load();
-                        Close();
+                        Load();
                     }
                 }
             );
@@ -154,16 +187,24 @@ public class EquipMenu : Menu
                 {
                     if (linkMode)
                     {
-                        currentEquipped.GetComponent<Weapon>().tech = null;
-                        infoMenus[0].SetItem(currentEquipped, inventory.GetComponent<Equipment>(), 1);
+                        ((Weapon)itemToLink).tech = null;
+                        currentLinked = null;
+                        infoMenus[0].SetItem(itemToLink, inventory.GetComponent<Equipment>(), 1);
+                        if (currentEquipped != null)
+                            infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>());
+                        else
+                            infoMenus[1].Close();
                         SwitchMode();
                     }
                     else
                     {
                         inventory.AddItem(currentEquipped);
                         OnConfirm.Invoke(null, itemType);
+
+                        currentEquipped = null;
+                        infoMenus[1].Close();
                         em.Load();
-                        Close();
+                        Load();
                     }
                 }
             );
@@ -172,8 +213,16 @@ public class EquipMenu : Menu
             (
                 () =>
                 {
+                    foreach (InfoMenu menu in infoMenus)
+                        menu.Close();
+
                     if (linkMode)
                     {
+                        infoMenus[0].SetItem(itemToLink, inventory.GetComponent<Equipment>(), 1);
+                        if (currentEquipped != null)
+                            infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>());
+                        else
+                            infoMenus[1].Close();
                         SwitchMode();
                     }
                     else
@@ -197,12 +246,8 @@ public class EquipMenu : Menu
                                     .FindAll
                                     (
                                         i =>
-                                            (itemType == "Consumable" && i.GetComponent<Consumable>()) ||
-                                            (itemType == "Ammo" && i.GetComponent<Ammo>()) ||
-                                            (itemType == "Accessory" && i.GetComponent<Accessory>()) ||
-                                            (itemType == "Spell" && i.GetComponent<Spell>()) ||
-                                            (!linkMode && itemType == "Weapon" && i.GetComponent<Weapon>()) ||
-                                            (linkMode && i.GetComponent<Technique>() && i.GetComponent<Technique>().CheckValidLink(currentEquipped.GetComponent<Weapon>())) ||
+                                            (!linkMode && itemType == i.GetItemClass()) ||
+                                            (linkMode && i.GetItemClass() == Technique.GetStaticItemClass() && ((Technique)i).CheckValidLink((Weapon)itemToLink)) ||
                                             (new List<string>() { "Helmet", "Chestplate", "Leggings", "Boots" }.Contains(itemType) && i.GetItemType()[0] == itemType)
                                     )
                                     .OrderBy(item => item.itemTypeID)

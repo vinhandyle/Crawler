@@ -4,9 +4,19 @@ using UnityEngine;
 
 public abstract class Consumable : Item
 {
-    public override Dictionary<Stats.Damage, int> GetStats(int str, int dex, int @int)
+    public Consumable()
+    { 
+    
+    }
+
+    public static string GetStaticItemClass()
     {
-        throw new System.NotImplementedException();
+        return "Consumable";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 
     /// <summary>

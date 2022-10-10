@@ -7,19 +7,16 @@ using static Stats;
 /// <summary>
 /// Base class for all items.
 /// </summary>
-public abstract class Item : MonoBehaviour
+public abstract class Item
 {
     public int itemTypeID { get;  protected set; }
     public int value { get; protected set; }
-    public Sprite sprite { get => _sprite; }
-    [SerializeField] protected Sprite _sprite;
-
-    public bool statsSet;
+    public Sprite sprite;
+    protected string spritePath = "Graphics/Items/";
 
     [Header("Stackable Item")]
     public bool stackable;
-    public int quantity { get => _quantity; set { _quantity = value; } }
-    [SerializeField] protected int _quantity;
+    public int quantity;
 
     [Header("Item Info")]
     public bool lootable = true;
@@ -35,25 +32,24 @@ public abstract class Item : MonoBehaviour
     protected Dictionary<int[], Effect> effects = new Dictionary<int[], Effect>();
 
     /// <summary>
-    /// Create a new instance of the item prefab. 
-    /// Necessary for having multiple of the same item without conflict.
+    /// Get the name of the item's class.
     /// </summary>
-    public Item CloneFromPrefab(Transform parent = null)
+    public abstract string GetItemClass();
+
+    /// <summary>
+    /// Return a copy of this item.
+    /// </summary>
+    public Item Clone()
     {
-        if (parent == null)
-            parent = (transform.parent != null) ? transform.parent : GameObject.Find("Item/Spell/Tech Dump").transform;
-        Item item = Instantiate(this, parent);
-        item.transform.name = item.transform.name.Replace("(Clone)", "").Trim();
-        item.SetBaseInfo();
-        return item;
+        return (Item)MemberwiseClone();
     }
 
     /// <summary>
-    /// Set the item's base information.
+    /// Returns the item's sprite.
     /// </summary>
-    public virtual void SetBaseInfo()
+    protected Sprite GetSprite(string path)
     {
-        statsSet = true;
+        return Resources.Load<Sprite>(spritePath + path);
     }
 
     /// <summary>

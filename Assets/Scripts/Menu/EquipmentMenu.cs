@@ -110,12 +110,12 @@ public class EquipmentMenu : CharacterMenu
 
         foreach (KeyValuePair<Stats.Damage, Color> kvp in new Stats().dmgColor)
         {
-            int totalDmg = equippedItems.Where(i => i != null && i.GetComponent<Weapon>() != null)
+            int totalDmg = equippedItems.Where(i => i != null && (Weapon)i != null)
                                    .Sum(
                 i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
                 );
 
-            int totalDef = equippedItems.Where(i => i != null && i.GetComponent<Weapon>() == null)
+            int totalDef = equippedItems.Where(i => i != null && (Weapon)i == null)
                                    .Sum(
                 i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
                 );
@@ -191,35 +191,35 @@ public class EquipmentMenu : CharacterMenu
         switch (type)
         {
             case "Helmet":
-                equipment.helmet = item?.GetComponent<Armor>();
+                equipment.helmet = (Armor)item;
                 break;
 
             case "Chestplate":
-                equipment.chestplate = item?.GetComponent<Armor>();
+                equipment.chestplate = (Armor)item;
                 break;
 
             case "Leggings":
-                equipment.leggings = item?.GetComponent<Armor>();
+                equipment.leggings = (Armor)item;
                 break;
 
             case "Boots":
-                equipment.boots = item?.GetComponent<Armor>();
+                equipment.boots = (Armor)item;
                 break;
 
             case "Weapon":
-                equipment.weapons[index] = item?.GetComponent<Weapon>();
+                equipment.weapons[index] = (Weapon)item;
                 break;
 
             case "Ammo":
-                equipment.ammos[index] = item?.GetComponent<Ammo>();
+                equipment.ammos[index] = (Ammo)item;
                 break;
 
             case "Accessory":
-                equipment.accessories[index] = item?.GetComponent<Accessory>();
+                equipment.accessories[index] = (Accessory)item;
                 break;
 
             case "Consumable":
-                equipment.consumables[index] = item?.GetComponent<Consumable>();
+                equipment.consumables[index] = (Consumable)item;
                 break;
         }
     }

@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class GodSwordTech_0 : Technique
 {
-    public override void SetBaseInfo()
+    public GodSwordTech_0() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = -1000;
         value = -1;
 

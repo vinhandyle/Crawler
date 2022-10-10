@@ -20,9 +20,9 @@ public abstract class Weapon : Item
 
     public Technique tech = null;
 
-    public override void SetBaseInfo()
+    public Weapon()
     {
-        base.SetBaseInfo();
+        spritePath += "Weapons/";
         SetRequirements(0, 0, 0);
 
         baseStats = new Dictionary<Damage, int>()
@@ -31,6 +31,16 @@ public abstract class Weapon : Item
             { Damage.Fire, 0 }, { Damage.Frost, 0 }, { Damage.Lightning, 0 },
             { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
         };
+    }
+
+    public static string GetStaticItemClass()
+    {
+        return "Weapon";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 
     /// <summary>

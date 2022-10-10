@@ -15,13 +15,14 @@ public class NPC : MonoBehaviour
     [SerializeField] protected bool hideFromScan;
     [SerializeField] protected bool isVendor;
 
-
     [Header("Player")]
     [SerializeField] protected Collider2D playerSight;
     [SerializeField] protected Collider2D playerReach;
     [SerializeField] protected bool inSight;
     [SerializeField] protected bool inReach;
     [SerializeField] protected bool noAntiHide;
+
+    private Inventory inventory;
      
     private void Awake()
     {
@@ -45,6 +46,9 @@ public class NPC : MonoBehaviour
         playerSight = FindObjectOfType<PlayerController>().transform.Find("Sight").GetComponent<Collider2D>();
         playerReach = FindObjectOfType<PlayerController>().transform.Find("Reach").GetComponent<Collider2D>();
         noAntiHide = false; // Change to check player scan skill
+
+        inventory = GetComponent<Inventory>();
+        inventory.AddItem(new GoldCoin(1000));
     }
 
     private void Update()

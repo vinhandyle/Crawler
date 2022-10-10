@@ -7,14 +7,23 @@ using UnityEngine;
 /// </summary>
 public abstract class Spell : Item
 {
-    public override void SetBaseInfo()
+    public Spell()
     {
-        base.SetBaseInfo();
         stashable = false;
         sellable = false;
         stealable = false;
 
         SetRequirements(0, 0, 0);
         SetUseCosts(0, 0, 0);
+    }
+
+    public static string GetStaticItemClass()
+    {
+        return "Spell";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 }

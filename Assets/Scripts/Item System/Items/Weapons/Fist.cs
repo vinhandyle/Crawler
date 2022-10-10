@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Fist : Weapon
 {
-    public override void SetBaseInfo()
+    public Fist() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = 0;
         value = 0;
+        sprite = GetSprite("Fist");
 
         lootable = false;
+        stashable = false;
         buyable = false;
         sellable = false;
         stealable = false;

@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class SlashTech_0 : Technique
 {
-    public override void SetBaseInfo()
+    public SlashTech_0() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = -1002;
         value = -1;
 

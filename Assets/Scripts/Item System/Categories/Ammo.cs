@@ -15,10 +15,10 @@ public abstract class Ammo : Item
         { Damage.Magic, new float[3] { 0, 0, 0 } }, { Damage.Holy, new float[3] { 0, 0, 0 } }, { Damage.Dark, new float[3] { 0, 0, 0 } }
     };
 
-    public override void SetBaseInfo()
+    public Ammo(int quantity)
     {
-        base.SetBaseInfo();
         stackable = true;
+        this.quantity = quantity;
 
         baseStats = new Dictionary<Damage, int>()
         {
@@ -26,6 +26,16 @@ public abstract class Ammo : Item
             { Damage.Fire, 0 }, { Damage.Frost, 0 }, { Damage.Lightning, 0 },
             { Damage.Magic, 0 }, { Damage.Holy, 0 }, { Damage.Dark, 0 }
         };
+    }
+
+    public static string GetStaticItemClass()
+    {
+        return "Ammo";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 
     public override Dictionary<Stats.Damage, int> GetStats(int str, int dex, int @int)

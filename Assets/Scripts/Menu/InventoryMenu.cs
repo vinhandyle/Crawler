@@ -186,7 +186,7 @@ public class InventoryMenu : CharacterMenu
             }
             else
             {
-                if (item.GetComponent<Consumable>())
+                if (item.GetItemClass() == Consumable.GetStaticItemClass())
                 {
                     infoMenu.SetItem(item);
                     um.Trigger(item);
@@ -232,16 +232,7 @@ public class InventoryMenu : CharacterMenu
         List<Item> items = inventory.GetAllItems()
                                     .FindAll
                                     (
-                                        i => (mode == Mode.All) ||
-                                            (mode == Mode.Consumable && i.GetComponent<Consumable>()) ||
-                                            (mode == Mode.Material && i.GetComponent<Material>()) ||
-                                            (mode == Mode.KeyItem && i.GetComponent<KeyItem>()) ||
-                                            (mode == Mode.Spell && i.GetComponent<Spell>()) ||
-                                            (mode == Mode.Technique && i.GetComponent<Technique>()) ||
-                                            (mode == Mode.Weapon && i.GetComponent<Weapon>()) ||
-                                            (mode == Mode.Ammo && i.GetComponent<Ammo>()) ||
-                                            (mode == Mode.Armor && i.GetComponent<Armor>()) ||
-                                            (mode == Mode.Accessory && i.GetComponent<Accessory>())
+                                        i => mode == Mode.All || mode.ToString() == i.GetItemClass()
                                     )
                                     .FindAll
                                     (

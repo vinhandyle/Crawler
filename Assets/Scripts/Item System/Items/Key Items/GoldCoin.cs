@@ -4,15 +4,14 @@ using UnityEngine;
 
 public class GoldCoin : KeyItem
 {
-    public override void SetBaseInfo()
+    public GoldCoin(int quantity) : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = -1;
         value = 1;
 
         stackable = true;
         buyable = false;
+        this.quantity = quantity;
 
         names.Add(0, "Gold Coin");
 

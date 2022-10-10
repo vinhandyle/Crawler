@@ -9,7 +9,8 @@ using UnityEngine;
 /// </summary>
 public class Inventory : MonoBehaviour
 {
-    [SerializeField] private List<Item> items;
+    [SerializeField] private List<string> itemNames;
+    private List<Item> items = new List<Item>();
     public bool standalone; // Whether the inventory is not associated to a profile
 
     #region Items tied to resource values
@@ -44,34 +45,6 @@ public class Inventory : MonoBehaviour
 
     #endregion
 
-    private void Awake()
-    {
-        List<Item> _items = new List<Item>();
-        foreach (Item item in items)
-        {
-            // We are assuming all stackable items were manually added into the scene
-            if (item.stackable)
-            {
-                item.SetBaseInfo();
-                _items.Add(item);
-            }
-            else
-            {
-                Item _item = item.CloneFromPrefab();
-                _items.Add(_item);
-
-                // Add default linked techniques
-                Technique tech = _item.GetComponent<Weapon>()?.tech;
-                if (tech)
-                {
-                    tech.SetBaseInfo();
-                    _items.Add(tech);
-                }
-            }
-        }
-        items = _items;
-    }
-
     /// <summary>
     /// Returns all items in this inventory.
     /// </summary>
@@ -88,10 +61,25 @@ public class Inventory : MonoBehaviour
         if (item != null)
         {
             items.Add(item);
+            itemNames.Add(item.ToString());
 
-            Technique tech = item.GetComponent<Weapon>()?.tech;
-            if (tech) items.Add(tech);
+            if (item.GetItemClass() == Weapon.GetStaticItemClass())
+            {
+                Technique tech = ((Weapon)item).tech;
+                if (!itemNames.Contains(tech?.ToString()))
+                    AddItem(((Weapon)item).tech);
+            }
         }
+    }
+
+    /// <summary>
+    /// Adds the specified item to the inventory based on the given probability.
+    /// </summary>
+    public void AddItemChance(Item item, float chance)
+    {
+        System.Random rand = new System.Random();
+        if (rand.NextDouble() >= chance)
+            AddItem(item);
     }
 
     /// <summary>
@@ -99,7 +87,11 @@ public class Inventory : MonoBehaviour
     /// </summary>
     public void RemoveItem(Item item)
     {
-        if (item != null && items.Contains(item)) items.Remove(item);
+        if (item != null && items.Contains(item))
+        {
+            items.Remove(item);
+            itemNames.Remove(item.ToString());
+        }
     }
 
     /// <summary>
@@ -135,11 +127,9 @@ public class Inventory : MonoBehaviour
         {
             // Add gold item if it isn't in the inventory
             // Required to access and update coin count
-            if (!items.Find(i => i.itemTypeID == -1) && price > 0)
+            if (items.Find(i => i.itemTypeID == -1) == null && price > 0)
             {
-                Item goldCoins = dest.items.Find(i => i.itemTypeID == -1).CloneFromPrefab(transform);
-                goldCoins.quantity = 0;
-                items.Add(goldCoins);
+                items.Add(new GoldCoin(0));
             }
 
             dest.coins -= price;
@@ -150,28 +140,25 @@ public class Inventory : MonoBehaviour
             {
                 if (dest.items.Any(i => i.itemTypeID == item.itemTypeID))
                 {
-                    Debug.Log(dest.items.FindIndex(i => i.itemTypeID == item.itemTypeID));
                     dest.items[dest.items.FindIndex(i => i.itemTypeID == item.itemTypeID)].quantity += amt;
                 }
                 else
                 {
-                    Item newItem = item.CloneFromPrefab(dest.transform);
-                    newItem.stackable = true;
-                    newItem.quantity = amt;
-                    dest.items.Add(newItem);
+                    Item newItem = item.Clone();
+                    newItem.quantity = amt;                  
+                    dest.AddItem(newItem);
                 }
 
                 item.quantity -= amt;
                 if (item.quantity == 0)
                 {
-                    items.Remove(item);
-                    Destroy(item.gameObject);
+                    RemoveItem(item);
                 }
             }
             else
             {
-                dest.items.Add(item);
-                items.Remove(item);
+                dest.AddItem(item);
+                RemoveItem(item);
             }
         }
         return successful;

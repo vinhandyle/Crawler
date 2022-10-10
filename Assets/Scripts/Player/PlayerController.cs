@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InventoryMenu im;
 
     private Rigidbody2D rb;
+    private Inventory inventory;
 
     [Header("Player Stats")]
     [SerializeField] private float baseSpeed = 1;
@@ -19,7 +20,17 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        inventory = GetComponent<Inventory>();
         playerSpeed = baseSpeed;
+
+        inventory.AddItem(new GoldCoin(1000));
+        inventory.AddItem(new GodSword_0());
+        inventory.AddItem(new Fist());
+        inventory.AddItem(new Arrow(100));
+        inventory.AddItem(new Fist());
+        inventory.AddItem(new Potion(25));
+        inventory.AddItem(new FistTech_0());
+        inventory.AddItem(new SlashTech_0());
     }
 
     void Update()

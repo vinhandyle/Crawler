@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class Potion : Consumable
 {
-    public override void SetBaseInfo()
+    public Potion(int quantity) : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = 5000;
         value = 20;
+        this.quantity = quantity;
 
         stackable = true;
 

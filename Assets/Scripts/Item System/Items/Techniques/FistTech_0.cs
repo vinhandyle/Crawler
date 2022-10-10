@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class FistTech_0 : Technique
 {
-    public override void SetBaseInfo()
+    public FistTech_0() : base()
     {
-        base.SetBaseInfo();
-
         itemTypeID = -1001;
         value = -1;
 

@@ -76,13 +76,13 @@ public class InfoMenu : Menu
     private string DisplayName()
     {
         string weaponInfo = "";
-        Weapon itemW = item.GetComponent<Weapon>();
-        if (itemW)
+        Weapon itemW = item.GetItemClass() == Weapon.GetStaticItemClass() ? (Weapon)item : null;
+        if (itemW != null)
         { 
             weaponInfo = string.Format(
             "\n[{0}{1}]",
             itemW.type,
-            itemW.tech ? string.Format("/{0}", itemW.tech.GetName(100)) : ""
+            itemW.tech != null ? string.Format("/{0}", itemW.tech.GetName(100)) : ""
             );
         }
 
@@ -160,7 +160,7 @@ public class InfoMenu : Menu
 
             foreach (KeyValuePair<Stats.Damage, int> kvp in baseStats)
             {
-                int n = (main?.item == null) ? ((dmgVals[kvp.Key] == 0) ? 0 : 1) : dmgVals[kvp.Key].CompareTo(mainDmgVals?[kvp.Key]);
+                int n = (mainDmgVals == null) ? dmgVals[kvp.Key] : dmgVals[kvp.Key].CompareTo(mainDmgVals[kvp.Key]);
                 string color = (n > 0) ? "green" : (n < 0) ? "red" : "black";
 
                 displayStats += string.Format
@@ -169,11 +169,11 @@ public class InfoMenu : Menu
                         kvp.Key.ToString().Substring(0, 4),
                         kvp.Value,
                         mode == 0 ? "black" : color,
-                        item.GetComponent<Weapon>() ? "Dmg" : "Def",
+                        item.GetItemClass() == Weapon.GetStaticItemClass() ? "Dmg" : "Def",
                         "#" + ColorUtility.ToHtmlStringRGBA(dmgColor[kvp.Key])
                     );
 
-                if (item.GetComponent<Weapon>())
+                if (item.GetItemClass() == Weapon.GetStaticItemClass())
                 {
                     int scaledStat = ((Weapon)item).GetScaledStats(0, 0, 0)[kvp.Key];
                     displayStats += string.Format

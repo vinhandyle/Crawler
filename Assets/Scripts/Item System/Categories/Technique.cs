@@ -11,15 +11,24 @@ public abstract class Technique : Item
     public AttackType type { get => _type; set => _type = value; }
     [SerializeField] protected AttackType _type;
 
-    public override void SetBaseInfo()
+    public Technique()
     {
-        base.SetBaseInfo();
         stashable = false;
         sellable = false;
         stealable = false;
 
         SetRequirements(0, 0, 0);
         SetUseCosts(0, 0, 0);
+    }
+
+    public static string GetStaticItemClass()
+    {
+        return "Technique";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 
     /// <summary>

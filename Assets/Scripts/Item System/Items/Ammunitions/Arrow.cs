@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class Arrow : Ammo
 {
-    public override void SetBaseInfo()
+    public Arrow(int quantity) : base(quantity)
     {
-        base.SetBaseInfo();
-
         itemTypeID = 2000;
         value = 10;
 

@@ -16,8 +16,8 @@ public class Equipment : MonoBehaviour
     public Armor chestplate;
     public Armor leggings;
     public Armor boots;
-    public List<Accessory> accessories;
-    public List<Spell> spells;
+    public List<Accessory> accessories = new List<Accessory>(5);
+    public List<Spell> spells = new List<Spell>(10);
 
     public Weapon[] weapons = new Weapon[2];
     public Ammo[] ammos = new Ammo[2];
