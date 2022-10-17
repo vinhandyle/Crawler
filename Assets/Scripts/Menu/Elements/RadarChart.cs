@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
 /// <summary>
 /// Defines a hexagon chart to display character stats.
 /// </summary>
-public class RadarChart : MonoBehaviour
+public class RadarChart : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private int max = 150;
     [SerializeField] private uint[] values = new uint[6];
@@ -34,9 +35,13 @@ public class RadarChart : MonoBehaviour
         DrawIcons();
     }
 
-    private void OnMouseEnter()
+    private void OnDisable()
     {
-        Debug.Log(0);
+        displayLvl.SetActive(false);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
         displayLvl.SetActive(true);
         displayLvl.GetComponentInChildren<Text>().text = string.Format(
             "VIT: {0}\nARC: {1}\nAGI: {2}\nSTR: {3}\nDEX: {4}\nINT: {5}",
@@ -49,7 +54,7 @@ public class RadarChart : MonoBehaviour
             );
     }
 
-    private void OnMouseExit()
+    public void OnPointerExit(PointerEventData eventData)
     {
         displayLvl.SetActive(false);
     }

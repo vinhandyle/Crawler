@@ -7,31 +7,34 @@ using static ActionMenu;
 /// <summary>
 /// Base class for all non-playable characters (including chests and corpses).
 /// </summary>
-public class NPC : MonoBehaviour
+public abstract class NPC : Character
 {
     [Header("Action")]
     [SerializeField] private List<Action> actions;
     [SerializeField] private ActionMenu am;
-    [SerializeField] protected bool hideFromScan;
+    [SerializeField] protected bool isHidden;
     [SerializeField] protected bool isVendor;
 
+    [Header("Dialogue")]
+    [SerializeField] protected Dialogue dialogue;
+
     [Header("Player")]
+    [SerializeField] protected CharacterProfile player;
     [SerializeField] protected Collider2D playerSight;
     [SerializeField] protected Collider2D playerReach;
     [SerializeField] protected bool inSight;
     [SerializeField] protected bool inReach;
-    [SerializeField] protected bool noAntiHide;
-
-    private Inventory inventory;
      
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         actions = new List<Action>();
-        if (GetComponent<Equipment>() != null) actions.Add(Action.Scan);
-        if (GetComponent<Dialogue>() != null) actions.Add(Action.Talk);
-        if (GetComponent<Inventory>() != null)
+        if (equipment) actions.Add(Action.Scan);
+        if (dialogue) actions.Add(Action.Talk);
+        if (inventory)
         {
-            if (GetComponent<Equipment>() == null)
+            if (!equipment)
             {
                 actions.Add(Action.Loot);
             }
@@ -42,12 +45,16 @@ public class NPC : MonoBehaviour
             }
         }
 
-        am = GameObject.Find("Helper Menus").transform.Find("Action Menu").GetComponentInChildren<ActionMenu>();       
-        playerSight = FindObjectOfType<PlayerController>().transform.Find("Sight").GetComponent<Collider2D>();
-        playerReach = FindObjectOfType<PlayerController>().transform.Find("Reach").GetComponent<Collider2D>();
-        noAntiHide = false; // Change to check player scan skill
+        am = GameObject.Find("Helper Menus").transform.Find("Action Menu").GetComponentInChildren<ActionMenu>();
+        player = FindObjectOfType<PlayerController>().GetComponent<CharacterProfile>();
+        playerSight = player.transform.Find("Sight").GetComponent<Collider2D>();
+        playerReach = player.transform.Find("Reach").GetComponent<Collider2D>();
+    }
 
-        inventory = GetComponent<Inventory>();
+    protected override void SetBaseInventory()
+    {
+        base.SetBaseInventory();
+
         inventory.AddItem(new GoldCoin(1000));
     }
 
@@ -69,34 +76,38 @@ public class NPC : MonoBehaviour
     private void OnMouseOver()
     {
         List<Action> tempActions = new List<Action>(actions);
-        bool inReachAction = inReach && (actions.Any(a => new List<Action>() { Action.Talk, Action.Loot, Action.Trade, Action.Steal }.Contains(a)));
-        bool inSightAction = inSight && actions.Contains(Action.Scan);
+        bool canScan = profile ? profile.SectionIsVisible(0, player, isHidden) : false;
+        if (!canScan) tempActions.Remove(Action.Scan);
+
+        bool inReachAction = inReach && tempActions.Any(a => new List<Action>() { Action.Talk, Action.Loot, Action.Trade, Action.Steal }.Contains(a));
+        bool inSightAction = inSight && tempActions.Contains(Action.Scan);
 
         CustomCursor.Instance.SetCursor((inReachAction || inSightAction) ? 2 : 1);
 
-        if (inReach)
+        if (Input.GetMouseButtonDown(1))
         {
-            if (Input.GetMouseButtonDown(1))
+            if (inReach)
             {
-                // Add check for super scan skill
-                if (hideFromScan && noAntiHide) tempActions.Remove(Action.Scan);
-
-                am.Trigger(tempActions, this);
-            }
-        }
-        else if (inSight)
-        {
-            tempActions.RemoveAll(a => new List<Action>() { Action.Talk, Action.Loot, Action.Trade, Action.Steal }.Contains(a));
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                // Don't do anything if opening nonexistent/hidden equipment
-                if (GetComponent<Equipment>() != null)
+                if (isHidden && !canScan)
                 {
-                    am.Trigger(tempActions, this);
+                    // Trigger mimic
+                    Debug.Log("Mimic triggered");
+                }
+                else
+                {
+                    am.Trigger(tempActions, this, canScan);
                 }
             }
-        }
+            else if (inSight)
+            {
+                tempActions.RemoveAll(a => new List<Action>() { Action.Talk, Action.Loot, Action.Trade, Action.Steal }.Contains(a));
+
+                if (canScan && equipment)
+                {
+                    am.Trigger(tempActions, this, canScan);
+                }
+            }
+        }    
     }
 
     private void OnMouseExit()

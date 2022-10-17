@@ -48,7 +48,7 @@ public class EquipMenu : Menu
     }
 
     /// <summary>
-    /// Performs any pre-processing for he item equip menu before opening it.
+    /// Performs any pre-processing for the item equip menu before opening it.
     /// </summary>
     public void Trigger(Item item, string type)
     {
@@ -56,8 +56,16 @@ public class EquipMenu : Menu
         currentEquipped = item;
         newEquip = null;
 
+        if (currentEquipped == null)
+            infoMenus[1].Close();
+
         linkMode = false;
-        currentLinked = ((Weapon)item)?.tech;
+        itemToLink = null;
+        if (item?.GetItemClass() == Weapon.GetStaticItemClass())
+        {
+            itemToLink = item;
+            currentLinked = ((Weapon)item).tech;
+        }
         newLink = null;
 
         transform.position = em.transform.position;
@@ -145,7 +153,7 @@ public class EquipMenu : Menu
     protected void ReloadButtons()
     {
         equipBtn.gameObject.SetActive((!linkMode && newEquip != null) || (linkMode && newLink != null));
-        unequipBtn.gameObject.SetActive((!linkMode && currentEquipped != null) || (linkMode && currentLinked != null));
+        unequipBtn.gameObject.SetActive((!linkMode && currentEquipped != null && currentEquipped.GetType() != typeof(Fist)) || (linkMode && currentLinked != null));
         modeBtn.gameObject.SetActive(!linkMode && (Weapon)itemToLink != null);
 
         equipBtn.onClick.RemoveAllListeners();
@@ -199,10 +207,24 @@ public class EquipMenu : Menu
                     else
                     {
                         inventory.AddItem(currentEquipped);
-                        OnConfirm.Invoke(null, itemType);
 
-                        currentEquipped = null;
-                        infoMenus[1].Close();
+                        // Fists are the default weapons
+                        if (currentEquipped.GetItemClass() == Weapon.GetStaticItemClass())
+                        {
+                            Fist fist = (Fist)inventory.GetAllItems().Where(i => i.GetType() == typeof(Fist)).FirstOrDefault();
+                            OnConfirm.Invoke(fist, itemType);
+                            inventory.RemoveItem(fist);
+
+                            currentEquipped = fist;
+                            infoMenus[1].SetItem(currentEquipped, inventory.GetComponent<Equipment>());
+                        }
+                        else
+                        {                          
+                            OnConfirm.Invoke(null, itemType);
+                            currentEquipped = null;
+                            infoMenus[1].Close();
+                        }
+
                         em.Load();
                         Load();
                     }

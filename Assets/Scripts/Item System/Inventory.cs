@@ -29,17 +29,21 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public int availableLvls
+    public int accessorySlots
     {
         get
         {
             Item item = items.Find(i => i.itemTypeID == -2);
-            return (item == null) ? 0 : item.quantity;
+            return 1 + ((item == null) ? 0 : item.quantity);
         }
-        set
+    }
+
+    public int availableLvls
+    {
+        get
         {
-            Item item = items.Find(i => i.itemTypeID == -2);
-            if (item != null) item.quantity = value;
+            Item item = items.Find(i => i.itemTypeID == -3);
+            return (item == null) ? 0 : item.quantity;
         }
     }
 
@@ -127,7 +131,7 @@ public class Inventory : MonoBehaviour
         {
             // Add gold item if it isn't in the inventory
             // Required to access and update coin count
-            if (items.Find(i => i.itemTypeID == -1) == null && price > 0)
+            if (items.Find(i => i.GetType() == typeof(GoldCoin)) == null && price > 0)
             {
                 items.Add(new GoldCoin(0));
             }

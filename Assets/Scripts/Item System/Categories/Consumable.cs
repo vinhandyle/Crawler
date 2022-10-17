@@ -2,8 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Base class for consumable items, including those with infinite uses.
+/// </summary>
 public abstract class Consumable : Item
 {
+    protected override string defaultSpritePath => "Graphics/Items/Item Categories/Category Consumable";
+
     public Consumable()
     { 
     

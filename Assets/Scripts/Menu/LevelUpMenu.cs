@@ -19,6 +19,7 @@ public class LevelUpMenu : Menu
     [SerializeField] private Text availableLvls;
     [SerializeField] private List<Button> statBtns;
     [SerializeField] private Button confirmBtn;
+    [SerializeField] private List<Menu> menusToReload;
 
     protected override void Awake()
     {
@@ -27,8 +28,23 @@ public class LevelUpMenu : Menu
         for (int i = 0; i < statBtns.Count; ++i)
         {
             int n = i;
-            statBtns[n].onClick.AddListener(() => { UpdateStatLevel(n, 1); });
-            statBtns[n].gameObject.AddComponent<RightClick>().onRightClick += () => { UpdateStatLevel(n, -1); };
+            statBtns[n].onClick.AddListener(
+                () => 
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        UpdateStatLevel(n, 5);
+                    else
+                        UpdateStatLevel(n, 1);
+                }
+                );
+            statBtns[n].gameObject.AddComponent<RightClick>().onRightClick += 
+                () => 
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        UpdateStatLevel(n, -5);
+                    else
+                        UpdateStatLevel(n, -1);
+                };
         }
 
         confirmBtn.onClick.AddListener(
@@ -36,6 +52,12 @@ public class LevelUpMenu : Menu
             {
                 SaveLevelChanges();
                 Close();
+                profile.GetComponent<Gauge>().FullRestore();
+
+                foreach (Menu menu in menusToReload)
+                {
+                    if (menu.open) menu.Load();
+                }
             }
         );
     }
@@ -55,14 +77,38 @@ public class LevelUpMenu : Menu
     /// display it as a temporary radar chart for comparison.
     /// </summary>
     private void UpdateStatLevel(int index, int delta)
-    {        
-        if (profile.level + usedLvls + delta <= inventory.availableLvls && deltas[index] + delta >= 0)
+    {
+        // Calculate amount to level
+        if (deltas[index] + delta < 0)
+        {
+            usedLvls -= deltas[index];
+            deltas[index] = 0;
+        }
+        else if (profile.level + usedLvls + delta > inventory.availableLvls)
+        {
+            if (profile.level + usedLvls < inventory.availableLvls)
+            {
+                int d =  inventory.availableLvls - (profile.level + usedLvls);
+                deltas[index] += d;
+                usedLvls += d;
+            }
+        }
+        else
         {
             deltas[index] += delta;
             usedLvls += delta;
-            availableLvls.text = string.Format("Stat Points Left: {0}", inventory.availableLvls - profile.level - usedLvls);
-            rc.GenerateTempChart(deltas);
         }
+
+        // Prevent leveling over cap
+        int curStatLvl = profile.GetBaseStatPointValues()[index];
+        if (curStatLvl + deltas[index] > 100)
+        {
+            usedLvls -= curStatLvl + deltas[index] - 100;
+            deltas[index] = 100 - curStatLvl;
+        }
+
+        availableLvls.text = string.Format("Stat Points Left: {0}", inventory.availableLvls - profile.level - usedLvls);
+        rc.GenerateTempChart(deltas);
     }
 
     /// <summary>

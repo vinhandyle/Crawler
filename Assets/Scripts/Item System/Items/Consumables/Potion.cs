@@ -8,9 +8,10 @@ public class Potion : Consumable
     {
         itemTypeID = 5000;
         value = 20;
-        this.quantity = quantity;
+        sprite = GetSprite("Potion");
 
         stackable = true;
+        this.quantity = quantity;
 
         names.Add(0, "Potion");
     }

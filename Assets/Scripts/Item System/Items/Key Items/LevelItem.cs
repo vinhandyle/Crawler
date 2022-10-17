@@ -7,17 +7,19 @@ using UnityEngine;
 /// </summary>
 public class LevelItem : KeyItem
 {
-    public LevelItem() : base()
+    public LevelItem(int quantity) : base()
     {
-        itemTypeID = -2;
+        itemTypeID = -3;
         value = 1000;
+        sprite = GetSprite("LevelItem");
 
         stackable = true;
         stashable = false;
         stealable = false;
+        this.quantity = quantity;
 
         names.Add(0, "Magical Orb");
 
-        descriptions.Add(0, "Use to increase your stats. Placeholder text to test horizontal window.");
+        descriptions.Add(0, "Use to increase your stats.");
     }
 }

@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InfoMenu : Menu
 {
+    [SerializeField] private CharacterProfile player;
     [SerializeField] private Item item;
     [SerializeField] private Equipment equipment;
     [SerializeField] private InfoMenu main;
@@ -17,6 +18,12 @@ public class InfoMenu : Menu
     [SerializeField] private int mode;
     [SerializeField] private Text displayInfo;
     [SerializeField] private Scrollbar scrollbar;
+
+    protected override void Awake()
+    {
+        player = GameObject.Find("Player").GetComponent<CharacterProfile>();
+        base.Awake();
+    }
 
     /// <summary>
     /// Returns true if the current item displayed is the specified item.
@@ -34,7 +41,7 @@ public class InfoMenu : Menu
         if (item != null)
         {
             this.item = item;
-            this.equipment = (equipment != null) ? equipment : GameObject.Find("Player").GetComponent<Equipment>();
+            this.equipment = (equipment != null) ? equipment : player.GetComponent<Equipment>();
             this.mode = mode;
             Open();
         }
@@ -82,16 +89,16 @@ public class InfoMenu : Menu
             weaponInfo = string.Format(
             "\n[{0}{1}]",
             itemW.type,
-            itemW.tech != null ? string.Format("/{0}", itemW.tech.GetName(100)) : ""
+            itemW.tech != null ? string.Format("/{0}", itemW.tech.GetName(player.appraisalLvl)) : ""
             );
         }
 
         return string.Format(
             "{0}{1}{2}",
-            item.GetName(0),
+            item.GetName(player.appraisalLvl),
             item.stackable ? string.Format(" x{0}", item.quantity) : "",
             weaponInfo
-            ); // edit arg
+            );
     }   
 
     private string DisplayRequirements()
@@ -135,7 +142,7 @@ public class InfoMenu : Menu
 
     private string DisplayDescription()
     {
-        return new MenuHelper().StringWindow(item.GetDescription(0), 31);
+        return new MenuHelper().StringWindow(item.GetDescription(player.appraisalLvl), 30);
     }
 
     private string DisplayStats()
@@ -158,6 +165,27 @@ public class InfoMenu : Menu
                     );
             Dictionary<Stats.Damage, Color> dmgColor = new Stats().dmgColor;
 
+            // Spell damage
+            if (item.GetItemClass() == Weapon.GetStaticItemClass())
+            {
+                float spellDmg = ((Weapon)item).GetSpellDamage(statPoints[Stats.Stat.Int]);
+                float mainSpellDmg = (main?.item == null) ? 0 : ((Weapon)main.item).GetSpellDamage(statPoints[Stats.Stat.Int]);
+
+                if (spellDmg > 0)
+                {
+                    int n = spellDmg.CompareTo(mainSpellDmg);
+                    string color = (n > 0) ? "green" : (n < 0) ? "red" : "black";
+
+                    displayStats += string.Format
+                        (
+                        "<color=#68adee>Spll Dmg:</color>\t<color={1}>{0}</color>\n",
+                        spellDmg,
+                        mode == 0 ? "black" : color
+                        );
+                }
+            }
+
+            // Basic attack damage / defense
             foreach (KeyValuePair<Stats.Damage, int> kvp in baseStats)
             {
                 int n = (mainDmgVals == null) ? dmgVals[kvp.Key] : dmgVals[kvp.Key].CompareTo(mainDmgVals[kvp.Key]);
@@ -169,7 +197,7 @@ public class InfoMenu : Menu
                         kvp.Key.ToString().Substring(0, 4),
                         kvp.Value,
                         mode == 0 ? "black" : color,
-                        item.GetItemClass() == Weapon.GetStaticItemClass() ? "Dmg" : "Def",
+                        item.GetItemClass() == Weapon.GetStaticItemClass() || item.GetItemClass() == Ammo.GetStaticItemClass() ? "Dmg" : "Def",
                         "#" + ColorUtility.ToHtmlStringRGBA(dmgColor[kvp.Key])
                     );
 
@@ -193,10 +221,11 @@ public class InfoMenu : Menu
     private string DisplayEffects()
     {
         string displayEffects = "";
+        Dictionary<Stats.Stat, int> statPoints = player.GetStatPoints();
 
-        foreach (Effect effect in item.GetEffects(0, 0)) // edit args
+        foreach (Effect effect in item.GetEffects(statPoints[Stats.Stat.Dex], statPoints[Stats.Stat.Int]))
         {
-            displayEffects += effect.description + "\n";
+            displayEffects += effect.GetDescripton() + "\n";
         }
         return new MenuHelper().StringWindow(displayEffects, 31);
     }

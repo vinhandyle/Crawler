@@ -52,13 +52,15 @@ public class Stats
     }
 
     /// <summary>
-    /// The 3 types of non-magic attacks.
+    /// The 5 types of non-magic attacks.
     /// </summary>
     public enum AttackType
     {
         Strike,
         Slash,
-        Pierce    
+        Pierce,
+        Ranged,
+        Block
     };
 
     public Dictionary<Damage, Color> dmgColor = new Dictionary<Damage, Color>()

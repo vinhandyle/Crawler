@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Spell : Item
 {
+    protected override string defaultSpritePath => "Graphics/Items/Item Categories/Category Spell";
+
     public Spell()
     {
         stashable = false;

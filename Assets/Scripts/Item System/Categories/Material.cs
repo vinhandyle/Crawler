@@ -2,17 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Base class for upgrade materials.
+/// </summary>
 public abstract class Material : Item
 {
-    // Start is called before the first frame update
-    void Start()
+    protected override string defaultSpritePath => "Graphics/Items/Item Categories/Category Material";
+
+    public Material(int quantity) : base()
     {
-        
+        stackable = true;
+        this.quantity = quantity;
     }
 
-    // Update is called once per frame
-    void Update()
+    public static string GetStaticItemClass()
     {
-        
+        return "Material";
+    }
+
+    public override string GetItemClass()
+    {
+        return GetStaticItemClass();
     }
 }

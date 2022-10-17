@@ -14,6 +14,7 @@ public class ActionMenu : Menu
     [SerializeField] private EquipmentMenu extEm;
     [SerializeField] private InventoryMenu extIm;
     [SerializeField] private NPC target;
+    [SerializeField] private bool canScan;
     [SerializeField] private List<Action> actions;
 
     [Header("Components")]
@@ -71,7 +72,7 @@ public class ActionMenu : Menu
     /// If there are multiple possible actions, open a menu to select.
     /// Otherwise, perform the action immediately.
     /// </summary>
-    public void Trigger(List<Action> actions, NPC target)
+    public void Trigger(List<Action> actions, NPC target, bool canScan)
     {
         Close();
         if (open && this.target == target) return;  // Don't reload action menu if re-click same target
@@ -82,6 +83,7 @@ public class ActionMenu : Menu
             extEm.Close();
         }
         SetTarget(target);
+        this.canScan = canScan;
 
         // Perform action or open action menu
         if (actions.Count > 1)
@@ -174,9 +176,7 @@ public class ActionMenu : Menu
                 extEm?.SetSwitchable(false);
 
                 // Reload switch view button
-                bool open = extEm.open;
-                extEm.Open();
-                if (!open) extEm.Close();
+                extEm.Load();
                 break;
         }
         Close();
@@ -190,7 +190,7 @@ public class ActionMenu : Menu
         if (extEm.open)
         {
             extEm.SetSwitchable(!target.GetComponent<Inventory>().standalone);
-            extEm.Open();
+            extEm.Load();
         }
     }
 
@@ -226,6 +226,7 @@ public class ActionMenu : Menu
     private void ToggleLoot(string type)
     {
         extEm.SetSwitchable(true);
+        extIm.SetSwitchable(canScan);
 
         // Set transfer type
         extIm.transferType = (type == "Trade") ? "Buy" : type;

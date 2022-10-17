@@ -8,6 +8,7 @@ public class SlashTech_0 : Technique
     {
         itemTypeID = -1002;
         value = -1;
+        sprite = GetSprite("SlashTech_0");
 
         names.Add(0, "Spinning Slash");
 

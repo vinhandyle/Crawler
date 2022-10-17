@@ -1,18 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Stats;
 
 /// <summary>
 /// Base class for all techniques.
 /// </summary>
 public abstract class Technique : Item
 {
-    public AttackType type { get => _type; set => _type = value; }
-    [SerializeField] protected AttackType _type;
+    protected override string defaultSpritePath => "Graphics/Items/Item Categories/Category Technique";
+
+    public Stats.AttackType type { get => _type; set => _type = value; }
+    [SerializeField] protected Stats.AttackType _type;
 
     public Technique()
     {
+        spritePath += "Techniques/";
+
         stashable = false;
         sellable = false;
         stealable = false;

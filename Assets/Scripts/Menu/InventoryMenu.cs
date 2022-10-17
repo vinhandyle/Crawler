@@ -21,6 +21,7 @@ public class InventoryMenu : CharacterMenu
 
     [Header("Transfer")]
     public string transferType;
+    [SerializeField] private string prevTransferType;
     [SerializeField] private Text displayMoney;
     [SerializeField] private TransferMenu tm;
 
@@ -67,6 +68,12 @@ public class InventoryMenu : CharacterMenu
         base.Close();
         tm.Close();
         um.Close();
+
+        prevTransferType = transferType;
+        OnSwitch += () =>
+        {
+            transferType = prevTransferType;
+        };
         transferType = "";
     }
 
@@ -87,6 +94,15 @@ public class InventoryMenu : CharacterMenu
     public void SetDefaultSwitchable()
     {
         SetSwitchable(!inventory.standalone);
+    }
+
+    /// <summary>
+    /// Reset all cached transfer information.
+    /// </summary>
+    public void ClearTransferTypes()
+    {
+        transferType = "";
+        prevTransferType = "";
     }
 
     #endregion

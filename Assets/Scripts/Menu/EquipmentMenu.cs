@@ -33,10 +33,19 @@ public class EquipmentMenu : CharacterMenu
     [SerializeField] private LevelUpMenu lum;
     [SerializeField] private EquipMenu em;
 
+    [Header("Analysis")]
+    [SerializeField] private CharacterProfile player;
+    [SerializeField] private CharacterProfile target;
+    [SerializeField] private GameObject spellSection;
+    [SerializeField] private List<GameObject> gearSection;
+
     protected override void Awake()
     {
         base.Awake();
         rc?.SetClickBehavior(lum);
+
+        allowSwitchEvent = false;
+        OnSwitch += () => { allowSwitchEvent = true; };
     }
 
     public override void Open()
@@ -52,6 +61,8 @@ public class EquipmentMenu : CharacterMenu
         lum?.Close();
         em?.Close();
         base.Close();
+
+        allowSwitchEvent = false;
     }
 
     #region Menu Setup
@@ -62,6 +73,20 @@ public class EquipmentMenu : CharacterMenu
     public void Set(Equipment equipment)
     {
         this.equipment = equipment;
+        target = equipment?.GetComponent<CharacterProfile>();
+    }
+
+    /// <summary>
+    /// Set the visibility of each section of the equipment menu based on
+    /// the player's analysis level and the section's requirement.
+    /// </summary>
+    private void SetSectionVisibility()
+    {
+        rc.gameObject.SetActive(target.SectionIsVisible(2, player));
+        displayStats.gameObject.SetActive(target.SectionIsVisible(0, player));
+        displayEffects.gameObject.SetActive(target.SectionIsVisible(2, player));
+        spellSection.SetActive(target.SectionIsVisible(3, player));
+        gearSection.ForEach(section => section.SetActive(target.SectionIsVisible(1, player)));
     }
 
     /// <summary>
@@ -70,9 +95,9 @@ public class EquipmentMenu : CharacterMenu
     private void LoadName()
     {
         displayName.text = string.Format(
-            "<color={2}>{0}</color>\nLvl {1}", 
+            "<color={2}>{0}</color>\n{1}", 
             new MenuHelper().StringWindow(equipment.GetCharacter().charName, 10), 
-            equipment.GetCharacter().level,
+            target.SectionIsVisible(1, player) ? "Lvl " + (equipment.GetCharacter().level + 1) : "",
             "#" + ColorUtility.ToHtmlStringRGBA(equipment.GetCharacter().nameColor)
             );
     }
@@ -110,12 +135,12 @@ public class EquipmentMenu : CharacterMenu
 
         foreach (KeyValuePair<Stats.Damage, Color> kvp in new Stats().dmgColor)
         {
-            int totalDmg = equippedItems.Where(i => i != null && (Weapon)i != null)
+            int totalDmg = equippedItems.Where(i => i != null && i.GetItemClass() == Weapon.GetStaticItemClass())
                                    .Sum(
                 i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
                 );
 
-            int totalDef = equippedItems.Where(i => i != null && (Weapon)i == null)
+            int totalDef = equippedItems.Where(i => i != null && i.GetItemClass() != Weapon.GetStaticItemClass())
                                    .Sum(
                 i => i.GetStats(stats[Stats.Stat.Str], stats[Stats.Stat.Dex], stats[Stats.Stat.Int])[kvp.Key]
                 );
@@ -146,7 +171,7 @@ public class EquipmentMenu : CharacterMenu
     private void LoadEffects()
     {
         displayEffects.text = new MenuHelper().StringWindow(
-            string.Join("\n", equipment.effects.Select(e => e.description)), 25);
+            string.Join("\n", equipment.effects.Select(e => e.GetDescripton())), 25);
     }
 
     #endregion
@@ -221,6 +246,10 @@ public class EquipmentMenu : CharacterMenu
             case "Consumable":
                 equipment.consumables[index] = (Consumable)item;
                 break;
+
+            case "Spell":
+                equipment.spells[index] = (Spell)item;
+                break;
         }
     }
 
@@ -230,12 +259,17 @@ public class EquipmentMenu : CharacterMenu
     {
         base.Load();
 
+        // Do not load if target has no equipment
+        if (!equipment) return;
+
         rc.SetValues(equipment.GetStatPointValues());
         rc.GenerateChart();
 
         LoadName();
         LoadStats();
         LoadEffects();
+
+        SetSectionVisibility();
 
         #region Gear Buttons
 

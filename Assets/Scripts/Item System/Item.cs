@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static Stats;
 
 /// <summary>
 /// Base class for all items.
 /// </summary>
 public abstract class Item
 {
-    public int itemTypeID { get;  protected set; }
+    public int itemTypeID { get; protected set; }
     public int value { get; protected set; }
     public Sprite sprite;
     protected string spritePath = "Graphics/Items/";
+    protected abstract string  defaultSpritePath { get; }
 
     [Header("Stackable Item")]
     public bool stackable;
@@ -26,9 +26,9 @@ public abstract class Item
     public bool stealable = true;
     protected Dictionary<int, string> names = new Dictionary<int, string>();
     protected Dictionary<int, string> descriptions = new Dictionary<int, string>();
-    protected Dictionary<Stat, int> reqs;
-    protected Dictionary<Gauge, int> useCosts;
-    protected Dictionary<Damage, int> baseStats;
+    protected Dictionary<Stats.Stat, int> reqs;
+    protected Dictionary<Stats.Gauge, int> useCosts;
+    protected Dictionary<Stats.Damage, int> baseStats;
     protected Dictionary<int[], Effect> effects = new Dictionary<int[], Effect>();
 
     /// <summary>
@@ -49,7 +49,15 @@ public abstract class Item
     /// </summary>
     protected Sprite GetSprite(string path)
     {
-        return Resources.Load<Sprite>(spritePath + path);
+        Sprite _sprite = Resources.Load<Sprite>(spritePath + path);
+        if (_sprite)
+        {
+            return _sprite;
+        }
+        else
+        {
+            return Resources.Load<Sprite>(defaultSpritePath);
+        }
     }
 
     /// <summary>
@@ -57,9 +65,9 @@ public abstract class Item
     /// </summary>
     protected void SetRequirements(int str, int dex, int @int)
     {
-        reqs = new Dictionary<Stat, int>()
+        reqs = new Dictionary<Stats.Stat, int>()
         {
-            { Stat.Str, str }, { Stat.Dex, dex }, { Stat.Int, @int }
+            { Stats.Stat.Str, str }, { Stats.Stat.Dex, dex }, { Stats.Stat.Int, @int }
         };
     }
 
@@ -68,14 +76,17 @@ public abstract class Item
     /// </summary>
     protected void SetUseCosts(int hp, int mp, int sp)
     {
-        useCosts = new Dictionary<Gauge, int>()
+        useCosts = new Dictionary<Stats.Gauge, int>()
         {
-            { Gauge.HP, hp }, { Gauge.MP, mp }, { Gauge.SP, sp }
+            { Stats.Gauge.HP, hp }, { Stats.Gauge.MP, mp }, { Stats.Gauge.SP, sp }
         };
     }
 
     #region Meta Data
 
+    /// <summary>
+    /// Returns item type, item subtype
+    /// </summary>
     public string[] GetItemType()
     {
         // [00][00][00][000]
@@ -123,15 +134,15 @@ public abstract class Item
                         break;
 
                     case 1:
-                        itemType[1] = "Chestplate";
+                        itemType[0] = "Chestplate";
                         break;
 
                     case 2:
-                        itemType[2] = "Leggings";
+                        itemType[0] = "Leggings";
                         break;
 
                     case 3:
-                        itemType[3] = "Boots";
+                        itemType[0] = "Boots";
                         break;
                 }
                 break;
@@ -174,7 +185,7 @@ public abstract class Item
     /// <summary>
     /// Returns the item's requirements (for displaying).
     /// </summary>
-    public Dictionary<Stat, int> GetRequirements()
+    public Dictionary<Stats.Stat, int> GetRequirements()
     {
         return reqs;
     }
@@ -182,7 +193,7 @@ public abstract class Item
     /// <summary>
     /// Returns the item's use costs (for displaying).
     /// </summary>
-    public Dictionary<Gauge, int> GetUseCosts()
+    public Dictionary<Stats.Gauge, int> GetUseCosts()
     {
         return useCosts;
     }
@@ -190,7 +201,7 @@ public abstract class Item
     /// <summary>
     /// Returns the base stat distribution of this weapon.
     /// </summary>
-    public virtual Dictionary<Damage, int> GetBaseStats()
+    public virtual Dictionary<Stats.Damage, int> GetBaseStats()
     {
         return baseStats;
     }
@@ -198,7 +209,7 @@ public abstract class Item
     /// <summary>
     /// Returns the item's stats based on the given skill levels.
     /// </summary>
-    public virtual Dictionary<Damage, int> GetStats(int str, int dex, int @int)
+    public virtual Dictionary<Stats.Damage, int> GetStats(int str, int dex, int @int)
     {
         return GetBaseStats();
     }
@@ -220,21 +231,21 @@ public abstract class Item
     /// Returns the given stat scaled based on item's innate scaling and the given skill levels.
     /// By default, scaling is linear with no caps.
     /// </summary>
-    protected virtual int GetScaledStat(Dictionary<Stat, int> reqs, int[] lvls, float[] scaling)
+    protected virtual int GetScaledStat(Dictionary<Stats.Stat, int> reqs, int[] lvls, float[] scaling)
     {
         int stat = 0;
 
-        if (lvls[0] >= reqs[Stat.Str])
+        if (lvls[0] >= reqs[Stats.Stat.Str])
         {
 
         }
 
-        if (lvls[1] >= reqs[Stat.Dex])
+        if (lvls[1] >= reqs[Stats.Stat.Dex])
         {
 
         }
 
-        if (lvls[2] >= reqs[Stat.Int])
+        if (lvls[2] >= reqs[Stats.Stat.Int])
         {
 
         }

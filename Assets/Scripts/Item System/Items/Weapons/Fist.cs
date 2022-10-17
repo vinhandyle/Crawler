@@ -20,5 +20,8 @@ public class Fist : Weapon
 
         baseStats[Stats.Damage.Physical] = 1;
         scalings[Stats.Damage.Physical] = new float[3] { 0.5f, 0, 0 };
+
+        baseSpellDmg = 1;
+        spellScaling = 0.01f;
     }
 }

@@ -8,6 +8,7 @@ public class Arrow : Ammo
     {
         itemTypeID = 2000;
         value = 10;
+        sprite = GetSprite("Arrow");
 
         names.Add(0, "Arrow");
 

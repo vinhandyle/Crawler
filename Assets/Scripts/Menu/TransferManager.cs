@@ -42,9 +42,19 @@ public class TransferManager : Singleton<TransferManager>
 
             case "Steal":
                 if (item.value < 0)
+                {
                     n = 0;
+                }
+                else if (item.value == 0)
+                {
+                    n = 100;
+                }
                 else
-                    n = (float)Math.Round((playerStatPoints[Stats.Stat.Dex] + 1) / ((float)(item.value + 1) * amt) * 100, 2); // TWEAK
+                {
+                    float chance = player.GetCharacter().pickpocketLvl / (item.value * amt * 10f);
+                    if (chance > 1) chance = 1;
+                    n = (float)Math.Round(chance * 100, 2);
+                }
                 break;
         }
 

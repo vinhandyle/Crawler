@@ -5,32 +5,42 @@ using UnityEngine;
 /// <summary>
 /// Controls the player.
 /// </summary>
-public class PlayerController : MonoBehaviour
+public class PlayerController : Character
 {
     [SerializeField] private EquipmentMenu em;
     [SerializeField] private InventoryMenu im;
 
-    private Rigidbody2D rb;
-    private Inventory inventory;
-
     [Header("Player Stats")]
     [SerializeField] private float baseSpeed = 1;
-    [SerializeField] private float playerSpeed;
 
-    void Start()
+    protected override void SetBaseInventory()
     {
-        rb = GetComponent<Rigidbody2D>();
-        inventory = GetComponent<Inventory>();
-        playerSpeed = baseSpeed;
+        base.SetBaseInventory();
 
         inventory.AddItem(new GoldCoin(1000));
+        inventory.AddItem(new LevelItem(200));
         inventory.AddItem(new GodSword_0());
+        inventory.AddItem(new GodSword_1());
+        inventory.AddItem(new GodSword_2());
         inventory.AddItem(new Fist());
         inventory.AddItem(new Arrow(100));
         inventory.AddItem(new Fist());
         inventory.AddItem(new Potion(25));
         inventory.AddItem(new FistTech_0());
         inventory.AddItem(new SlashTech_0());
+        inventory.AddItem(new Fireball());
+        inventory.AddItem(new Heal());
+        inventory.AddItem(new GreatHeal());
+        inventory.AddItem(new CosmicHelmet());
+        inventory.AddItem(new CosmicChestplate());
+        inventory.AddItem(new TankRing());
+        inventory.AddItem(new DragonMaterial(33));
+        //inventory.AddItem(new AccessoryBag(1));       
+    }
+
+    protected override void SetBaseEquipment()
+    {
+        equipment.FullEquipWeapon<Fist>();
     }
 
     void Update()
@@ -44,6 +54,7 @@ public class PlayerController : MonoBehaviour
 
         float hSpeed = 0;
         float vSpeed = 0;
+        float playerSpeed = baseSpeed * profile.speedMult;
 
         // If there is no input for an axis, there is no movement along that axis
         // If there is simultaneous input of opposite directions, there is no movement along that axis

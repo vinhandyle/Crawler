@@ -8,6 +8,7 @@ public class GoldCoin : KeyItem
     {
         itemTypeID = -1;
         value = 1;
+        sprite = GetSprite("GoldCoin");
 
         stackable = true;
         buyable = false;

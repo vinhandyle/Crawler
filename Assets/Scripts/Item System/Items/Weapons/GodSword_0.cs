@@ -8,6 +8,7 @@ public class GodSword_0 : Weapon
     {
         itemTypeID = 1000; //
         value = -1;
+        sprite = GetSprite("GodSword_0");
         _type = Stats.AttackType.Slash;
 
         tech = new GodSwordTech_0();
